@@ -52,7 +52,11 @@ Until the official store release, you can install StremioHub locally:
 - **Local Storage Only**: All your data, library cache, and settings are saved securely and locally on your browser using `chrome.storage.local`.
 - **No Analytics**: We do not track your library, searches, or web activity.
 
+## ⚠️ Disclaimer
+
+**StremioHub is an unofficial, community-built extension.** It is not affiliated with, endorsed by, or officially connected to the Stremio team.
+
 <br>
 <div align="center">
-  <p>تم التطوير بكل ❤️ بواسطة <b>Yasser</b></p>
+  <p>Made with love for the Stremio community 🍿 by <b>Yasser</b></p>
 </div>
