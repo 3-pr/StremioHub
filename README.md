@@ -4,8 +4,11 @@
   <p><b>The all-in-one Stremio companion for your browser.</b></p>
   <p>
     <a href="#features">Features</a> •
-    <a href="#installation">Installation</a> •
-    <a href="#chrome-extension--coming-soon">Chrome Web Store</a>
+    <a href="#installation-developer-mode">Installation</a> •
+    <a href="#chrome-extension-coming-soon">Chrome Web Store</a>
+  </p>
+  <p>
+    <a href="README_AR.md">🇸🇦 Read in Arabic (اقرأ بالعربية)</a>
   </p>
 </div>
 
@@ -33,13 +36,14 @@ Soon, you will be able to install it with a single click and receive automatic u
 
 Until the official store release, you can install StremioHub locally:
 
-1. Download or clone this repository to your computer:
+1. **Download the latest release:** Go to the [Releases page](https://github.com/3-pr/StremioHub/releases) and download the `.zip` file of the latest version, then extract it to a folder.
+   *Alternatively, you can clone the repository:*
    ```bash
    git clone https://github.com/3-pr/StremioHub.git
    ```
 2. Open Google Chrome (or any Chromium-based browser) and navigate to `chrome://extensions/`.
 3. Enable **Developer mode** (toggle switch in the top right corner).
-4. Click on **Load unpacked** and select the `StremioHub` folder you just downloaded.
+4. Click on **Load unpacked** and select the `StremioHub` folder you extracted.
 5. Pin the extension to your toolbar, log in with your Stremio account, and enjoy!
 
 ## 🔐 Privacy & Security
