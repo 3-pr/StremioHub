@@ -93,9 +93,15 @@ const I18N = {
     msg_removed_library: "تم الحذف من المكتبة",
     msg_remove_failed: "خطأ في الحذف",
     msg_error: "خطأ",
-    dev_credits: "تم التطوير بكل ❤️ بواسطة",
+    dev_credits: "صُنع من مُشاهد، إلى كل المشاهدين 🍿",
     stat_watched: "شُوهدت",
     stat_addons: "إضافات",
+    web_btn: "المتصفح",
+    empty_movies: "مكتبة الأفلام فارغة",
+    empty_series: "لا توجد مسلسلات في مكتبتك",
+    empty_continue: "لا يوجد شيء قيد المشاهدة",
+    support_url: "https://creators.sa/i",
+    support_text: "أعجبتك الإضافة؟"
   },
   en: {
     app_title: "StremioHub",
@@ -191,9 +197,15 @@ const I18N = {
     msg_removed_library: "Removed from Library",
     msg_remove_failed: "Failed to remove",
     msg_error: "Error",
-    dev_credits: "Developed with ❤️ by",
+    dev_credits: "Made by a viewer, for the viewers 🍿",
     stat_watched: "Watched",
     stat_addons: "Add-ons",
+    web_btn: "Web",
+    empty_movies: "Movie library is empty",
+    empty_series: "No series in your library",
+    empty_continue: "Nothing is currently being watched",
+    support_url: "https://ko-fi.com/V8P5206X9H",
+    support_text: "Support me on Ko-fi"
   }
 };
 
@@ -220,6 +232,19 @@ function applyI18N(lang) {
   const btnTranslate = document.getElementById('btn-translate');
   if (btnTranslate) {
     btnTranslate.style.display = lang === 'en' ? 'none' : '';
+  }
+
+  const supportHeaderBtn = document.getElementById('support-header-btn');
+  if (supportHeaderBtn) {
+    supportHeaderBtn.href = t.support_url || "https://creators.sa/i";
+    supportHeaderBtn.title = t.support_text || "أعجبتك الإضافة؟";
+  }
+
+  const supportFooterBtn = document.getElementById('support-footer-btn');
+  if (supportFooterBtn) {
+    supportFooterBtn.href = t.support_url || "https://creators.sa/i";
+    const svgIcon = supportFooterBtn.innerHTML.match(/<svg.*?<\/svg>/s)?.[0] || '';
+    supportFooterBtn.innerHTML = svgIcon + ' ' + (t.support_text || "أعجبتك الإضافة؟");
   }
 }
 
@@ -914,10 +939,16 @@ function setupEventListeners() {
   }
 
   const btnWeb = $('btn-web');
-  if (btnWeb) btnWeb.addEventListener('click', openStremioWeb);
+  if (btnWeb) btnWeb.addEventListener('click', () => {
+    if (state.openMethod === 'app') openStremioApp();
+    else openStremioWeb();
+  });
 
   const btnApp = $('btn-app');
-  if (btnApp) btnApp.addEventListener('click', openStremioApp);
+  if (btnApp) btnApp.addEventListener('click', () => {
+    if (state.openMethod === 'app') openStremioWeb();
+    else openStremioApp();
+  });
 
   const btnAdd = $('btn-add');
   if (btnAdd) btnAdd.addEventListener('click', handleAddToLibrary);
@@ -991,6 +1022,7 @@ function setupEventListeners() {
     $('setting-open-method').addEventListener('change', (e) => {
       state.openMethod = e.target.value;
       chrome.storage.local.set({ openMethod: state.openMethod });
+      updateWatchButtonsUI();
     });
   }
 
@@ -1252,8 +1284,9 @@ function renderMovies() {
   grid.innerHTML = '';
   
   if (!state.library.movies.length) {
+    const t = I18N[state.language || 'ar'];
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
-      <div class="empty-state-icon">🎬</div><div>مكتبة الأفلام فارغة</div></div>`;
+      <div class="empty-state-icon">🎬</div><div>${t.empty_movies || 'مكتبة الأفلام فارغة'}</div></div>`;
     return;
   }
   
@@ -1269,8 +1302,9 @@ function renderSeries() {
   grid.innerHTML = '';
   
   if (!state.library.series.length) {
+    const t = I18N[state.language || 'ar'];
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
-      <div class="empty-state-icon">📺</div><div>لا توجد مسلسلات في مكتبتك</div></div>`;
+      <div class="empty-state-icon">📺</div><div>${t.empty_series || 'لا توجد مسلسلات في مكتبتك'}</div></div>`;
     return;
   }
   
@@ -1285,8 +1319,9 @@ function renderContinue(silent = false) {
   const list = $('continue-list');
   list.innerHTML = '';
   if (!state.library.continue || !state.library.continue.length) {
+    const t = I18N[state.language || 'ar'];
     list.innerHTML = `<div class="empty-state">
-      <div class="empty-state-icon">▶️</div><div>لا يوجد شيء قيد المشاهدة</div></div>`;
+      <div class="empty-state-icon">▶️</div><div>${t.empty_continue || 'لا يوجد شيء قيد المشاهدة'}</div></div>`;
     return;
   }
   state.library.continue.forEach((item, index) => {
@@ -1470,6 +1505,29 @@ function renderDetailBasic(item) {
 
   const progressEl = $('detail-watch-progress');
   if (progressEl) progressEl.innerHTML = '';
+  
+  updateWatchButtonsUI();
+}
+
+function updateWatchButtonsUI() {
+  const isApp = state.openMethod === 'app';
+  const lang = state.language || 'ar';
+  
+  const secondaryBtn = $('btn-app');
+  if (secondaryBtn) {
+    const span = secondaryBtn.querySelector('span');
+    const iconCircle = secondaryBtn.querySelector('.icon-circle');
+    
+    if (isApp) {
+      secondaryBtn.title = I18N[lang].web_btn || "المتصفح";
+      if (span) span.textContent = I18N[lang].web_btn || "المتصفح";
+      if (iconCircle) iconCircle.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+    } else {
+      secondaryBtn.title = I18N[lang].app_btn || "التطبيق";
+      if (span) span.textContent = I18N[lang].app_btn || "التطبيق";
+      if (iconCircle) iconCircle.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`;
+    }
+  }
 }
 
 function renderDetail(meta, libraryItem) {
