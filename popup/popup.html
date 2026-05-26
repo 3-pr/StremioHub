@@ -100,8 +100,14 @@
 
         <div class="settings-group-title" data-i18n="extension_settings">إعدادات الإضافة</div>
 
-        <div class="settings-list">
+        <nav class="settings-tabs">
+          <div class="settings-tab-indicator"></div>
+          <button class="settings-tab-btn active" data-settings-tab="general" data-i18n="tab_general">عام</button>
+          <button class="settings-tab-btn" data-settings-tab="library" data-i18n="tab_library">المكتبة</button>
+          <button class="settings-tab-btn" data-settings-tab="websites" data-i18n="tab_websites">المواقع</button>
+        </nav>
 
+        <div class="settings-list settings-tab-content active" id="settings-tab-general">
           <div class="setting-card">
             <div class="setting-info">
               <h4 data-i18n="lang_title">اللغة / Language</h4>
@@ -110,39 +116,6 @@
             <select id="setting-language" class="size-select-modern">
               <option value="ar">العربية (Arabic)</option>
               <option value="en">English</option>
-            </select>
-          </div>
-
-          <div class="setting-card">
-            <div class="setting-info">
-              <h4 data-i18n="autosave_title">الحفظ التلقائي في المواقع</h4>
-              <p data-i18n="autosave_desc">حفظ العمل مباشرة في مكتبتك عند الضغط على الزر في المواقع الخارجية، دون عرض نافذة التفاصيل أولاً.</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="setting-autosave" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-card">
-            <div class="setting-info">
-              <h4 data-i18n="sort_title">خيارات الترتيب في المكتبة</h4>
-              <p data-i18n="sort_desc">عرض شريط ترتيب وتصفية الأعمال (آخر مشاهدة، أبجدي، شُوهد/لم يشاهد) أعلى مكتبتك.</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="setting-show-sort" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-card">
-            <div class="setting-info">
-              <h4 data-i18n="open_method_title">طريقة الفتح في Stremio</h4>
-              <p data-i18n="open_method_desc">كيف تفضل أن يتم فتح الأعمال عند اختيار "فتح"؟</p>
-            </div>
-            <select id="setting-open-method" class="size-select-modern">
-              <option value="web" data-i18n="open_web">Stremio Web (المتصفح)</option>
-              <option value="app" data-i18n="open_app">تطبيق Stremio</option>
             </select>
           </div>
 
@@ -157,7 +130,6 @@
             </select>
           </div>
 
-          
           <div class="setting-card">
             <div class="setting-info">
               <h4 data-i18n="detail_style_title">شكل نافذة التفاصيل</h4>
@@ -171,10 +143,71 @@
 
           <div class="setting-card">
             <div class="setting-info">
+              <h4 data-i18n="open_method_title">طريقة الفتح في Stremio</h4>
+              <p data-i18n="open_method_desc">كيف تفضل أن يتم فتح الأعمال عند اختيار "فتح"؟</p>
+            </div>
+            <select id="setting-open-method" class="size-select-modern">
+              <option value="web" data-i18n="open_web">Stremio Web (المتصفح)</option>
+              <option value="app" data-i18n="open_app">تطبيق Stremio</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-list settings-tab-content hidden" id="settings-tab-library">
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="sort_title">خيارات الترتيب في المكتبة</h4>
+              <p data-i18n="sort_desc">عرض شريط ترتيب وتصفية الأعمال (آخر مشاهدة، أبجدي، شُوهد/لم يشاهد) أعلى مكتبتك.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-show-sort" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
               <h4 data-i18n="meta_addon_title">مصدر وصف العمل</h4>
               <p data-i18n="meta_addon_desc">اختر الإضافة المفضلة لديك لجلب تفاصيل الأعمال.</p>
             </div>
             <select id="setting-meta-addon" class="size-select-modern">
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-list settings-tab-content hidden" id="settings-tab-websites">
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="autosave_title">الحفظ التلقائي في المواقع</h4>
+              <p data-i18n="autosave_desc">حفظ العمل مباشرة في مكتبتك عند الضغط على الزر في المواقع الخارجية، دون عرض نافذة التفاصيل أولاً.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-autosave" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="toast_enabled_title">إشعار الحفظ في المكتبة</h4>
+              <p data-i18n="toast_enabled_desc">عرض إشعار صغير في زاوية الشاشة للتأكيد عند حفظ عمل جديد في مكتبتك.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-toast-enabled" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="toast_position_title">موقع إشعار الحفظ</h4>
+              <p data-i18n="toast_position_desc">اختر في أي زاوية من الشاشة يظهر إشعار الحفظ.</p>
+            </div>
+            <select id="setting-toast-position" class="size-select-modern">
+              <option value="top-right" data-i18n="pos_top_right">فوق يمين</option>
+              <option value="top-left" data-i18n="pos_top_left">فوق يسار</option>
+              <option value="bottom-right" data-i18n="pos_bottom_right">تحت يمين</option>
+              <option value="bottom-left" data-i18n="pos_bottom_left">تحت يسار</option>
             </select>
           </div>
 
@@ -452,6 +485,20 @@
           <p id="detail-description"></p>
         </div>
 
+        <div id="episodes-browser-section" class="detail-episodes-section hidden">
+          <div class="episodes-header">
+            <h3 data-i18n="episodes_title">الحلقات</h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="mark-season-watched-btn" class="season-select-modern" style="padding: 6px 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="تعليم الموسم كمشاهد">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span id="mark-season-text" style="font-size:12px;">مشاهدة الموسم</span>
+              </button>
+              <select id="season-selector" class="season-select-modern"></select>
+            </div>
+          </div>
+          <div id="episodes-list" class="episodes-horizontal-strip"></div>
+        </div>
+
         <div class="detail-cast-section">
           <h3 data-i18n="cast_title">طاقم العمل</h3>
           <div id="detail-cast" class="cast-row"></div>
@@ -520,6 +567,7 @@
     <div id="toast-container"></div>
   </div>
 
+  <script src="pako.min.js"></script>
   <script src="popup.js"></script>
 </body>
 

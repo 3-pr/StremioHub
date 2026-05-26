@@ -61,6 +61,9 @@ const I18N = {
     tab_movies: "الأفلام",
     tab_series: "المسلسلات",
     tab_continue: "قيد المشاهدة",
+    tab_general: "عام",
+    tab_library: "المكتبة",
+    tab_websites: "المواقع",
     sort_alphabetical_reverse: "Z-A",
     filter_placeholder: "تصفية...",
     story_title: "القصة",
@@ -100,8 +103,27 @@ const I18N = {
     empty_movies: "مكتبة الأفلام فارغة",
     empty_series: "لا توجد مسلسلات في مكتبتك",
     empty_continue: "لا يوجد شيء قيد المشاهدة",
+    next_episode: "الحلقة التالية: S{s}E{e}",
+    resume_episode: "استكمال S{s}E{e}",
+    new_episodes_count: "لديك {count} حلقات جديدة",
+    episodes_title: "الحلقات",
+    season_n: "الموسم {n}",
+    play_episode: "شاهد S{s}E{e} الآن",
+    mark_read_title: "تحديد كمقروء",
+    unmark_read_title: "إلغاء المشاهدة",
+    mark_season_watched: "مشاهدة الموسم",
+    unmark_season_watched: "إلغاء مشاهدة الموسم",
+    coming_soon: "قريباً",
     support_url: "https://creators.sa/i",
-    support_text: "أعجبتك الإضافة؟"
+    support_text: "أعجبتك الإضافة؟",
+    toast_enabled_title: "إشعار الحفظ في المكتبة",
+    toast_enabled_desc: "عرض إشعار صغير في زاوية الشاشة للتأكيد عند حفظ عمل جديد في مكتبتك.",
+    toast_position_title: "موقع إشعار الحفظ",
+    toast_position_desc: "اختر في أي زاوية من الشاشة يظهر إشعار الحفظ.",
+    pos_top_right: "فوق يمين",
+    pos_top_left: "فوق يسار",
+    pos_bottom_right: "تحت يمين",
+    pos_bottom_left: "تحت يسار"
   },
   en: {
     app_title: "StremioHub",
@@ -165,6 +187,9 @@ const I18N = {
     tab_movies: "Movies",
     tab_series: "Series",
     tab_continue: "Continue",
+    tab_general: "General",
+    tab_library: "Library",
+    tab_websites: "Websites",
     sort_alphabetical_reverse: "Z-A",
     filter_placeholder: "Filter...",
     story_title: "Story",
@@ -204,8 +229,27 @@ const I18N = {
     empty_movies: "Movie library is empty",
     empty_series: "No series in your library",
     empty_continue: "Nothing is currently being watched",
-    support_url: "https://ko-fi.com/V8P5206X9H",
-    support_text: "Support me on Ko-fi"
+    next_episode: "Next: S{s}E{e}",
+    resume_episode: "Resume S{s}E{e}",
+    new_episodes_count: "{count} new episodes",
+    episodes_title: "Episodes",
+    season_n: "Season {n}",
+    play_episode: "Watch S{s}E{e} Now",
+    mark_read_title: "Mark as read",
+    unmark_read_title: "Remove from history",
+    mark_season_watched: "Watch Season",
+    unmark_season_watched: "Unwatch Season",
+    coming_soon: "Coming Soon",
+    support_url: "https://ko-fi.com/i0zzw",
+    support_text: "Support me on Ko-fi",
+    toast_enabled_title: "Library Save Notification",
+    toast_enabled_desc: "Show a small notification in the corner when successfully saving an item.",
+    toast_position_title: "Notification Position",
+    toast_position_desc: "Choose the corner of the screen where the notification will appear.",
+    pos_top_right: "Top Right",
+    pos_top_left: "Top Left",
+    pos_bottom_right: "Bottom Right",
+    pos_bottom_left: "Bottom Left"
   }
 };
 
@@ -437,7 +481,7 @@ const StremioAPI = {
         lastWatched: new Date().toISOString()
       }
     };
-    
+
     if (libraryItem.temp) {
       payloadItem.removed = true;
       payloadItem.temp = false;
@@ -460,7 +504,7 @@ const SearchEngine = {
   async search(query) {
     const encoded = encodeURIComponent(query);
     const urlsToFetch = [];
-    
+
     if (!state.addons || state.addons.length === 0) {
       urlsToFetch.push(`${CINEMETA_BASE}/catalog/movie/top/search=${encoded}.json`);
       urlsToFetch.push(`${CINEMETA_BASE}/catalog/series/top/search=${encoded}.json`);
@@ -474,7 +518,7 @@ const SearchEngine = {
           } else if (cat.extraSupported) {
             supportsSearch = cat.extraSupported.includes('search');
           }
-          
+
           if (supportsSearch && (cat.type === 'movie' || cat.type === 'series')) {
             const baseUrl = addon.transportUrl.replace('/manifest.json', '');
             urlsToFetch.push(`${baseUrl}/catalog/${cat.type}/${cat.id}/search=${encoded}.json`);
@@ -484,7 +528,7 @@ const SearchEngine = {
     }
 
     const responses = await Promise.allSettled(urlsToFetch.map(url => fetch(url).then(r => r.json())));
-    
+
     let allMetas = [];
     responses.forEach(res => {
       if (res.status === 'fulfilled' && res.value && res.value.metas) {
@@ -507,7 +551,7 @@ const SearchEngine = {
 
   async getMeta(type, imdbId) {
     const urlsToFetch = [];
-    
+
     if (state.metaAddon && state.metaAddon !== 'auto') {
       urlsToFetch.push(`${state.metaAddon}/meta/${type}/${imdbId}.json`);
     } else if (!state.addons || state.addons.length === 0) {
@@ -516,7 +560,7 @@ const SearchEngine = {
       state.addons.forEach(addon => {
         if (!addon.manifest || !addon.manifest.resources) return;
         let supportsMeta = false;
-        
+
         if (Array.isArray(addon.manifest.resources)) {
           addon.manifest.resources.forEach(res => {
             if (typeof res === 'string' && res === 'meta') {
@@ -526,7 +570,7 @@ const SearchEngine = {
             }
           });
         }
-        
+
         if (supportsMeta) {
           const baseUrl = addon.transportUrl.replace('/manifest.json', '');
           urlsToFetch.push(`${baseUrl}/meta/${type}/${imdbId}.json`);
@@ -535,13 +579,13 @@ const SearchEngine = {
     }
 
     if (!urlsToFetch.some(url => url.includes(CINEMETA_BASE))) {
-       urlsToFetch.push(`${CINEMETA_BASE}/meta/${type}/${imdbId}.json`);
+      urlsToFetch.push(`${CINEMETA_BASE}/meta/${type}/${imdbId}.json`);
     }
 
     const responses = await Promise.allSettled(urlsToFetch.map(url => fetch(url).then(r => r.json())));
-    
+
     let bestMeta = null;
-    
+
     // Find Cinemeta fallback which is the last item in urlsToFetch (or anywhere it matched)
     let cinemetaMeta = null;
     responses.forEach((res, i) => {
@@ -609,7 +653,7 @@ const Library = {
       continueWatching = allItems
         .filter(i => {
           if (i.removed && !i.temp) return false;
-          
+
           if (state.dismissedNotifs && state.dismissedNotifs[i._id]) {
             if (i.type === 'series' && countNewEpisodes(i) > 0) return true;
             const lastWatched = i.state?.lastWatched ? new Date(i.state.lastWatched).getTime() : 0;
@@ -711,7 +755,7 @@ function showToast(message, type = 'info', duration = 2500) {
   const toast = document.createElement('div');
   toast.id = 'sh-toast';
   toast.className = `toast toast-${type}`;
-  
+
   let iconHtml = '';
   if (type === 'success') {
     iconHtml = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
@@ -727,7 +771,7 @@ function showToast(message, type = 'info', duration = 2500) {
       <span>${message}</span>
     </div>
   `;
-  
+
   const container = document.getElementById('toast-container');
   if (container) {
     container.appendChild(toast);
@@ -765,6 +809,8 @@ const state = {
   stremioNotifications: null,
   openMethod: 'web',
   detailMode: 'fullscreen',
+  toastEnabled: true,
+  toastPosition: 'bottom-right',
   siteActions: {
     google: 'save',
     letterboxd: 'save',
@@ -789,8 +835,8 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 // ==================== Init ====================
 document.addEventListener('DOMContentLoaded', async () => {
-  const localCache = await chrome.storage.local.get(['stremio_auth', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'siteActions', 'language']);
-  
+  const localCache = await chrome.storage.local.get(['stremio_auth', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'siteActions', 'language', 'toastEnabled', 'toastPosition']);
+
   if (localCache.language) state.language = localCache.language;
   applyI18N(state.language);
   if ($('setting-language')) $('setting-language').value = state.language;
@@ -806,9 +852,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (localCache.sitesEnabled) state.sitesEnabled = localCache.sitesEnabled;
   if (localCache.openMethod) state.openMethod = localCache.openMethod;
   if (localCache.siteActions) state.siteActions = localCache.siteActions;
+  if (localCache.toastEnabled !== undefined) state.toastEnabled = localCache.toastEnabled;
+  if (localCache.toastPosition) state.toastPosition = localCache.toastPosition;
 
   if ($('setting-autosave')) $('setting-autosave').checked = state.autoSave;
   if ($('setting-show-sort')) $('setting-show-sort').checked = state.showLibrarySort;
+  if ($('setting-toast-enabled')) $('setting-toast-enabled').checked = state.toastEnabled;
+  if ($('setting-toast-position')) $('setting-toast-position').value = state.toastPosition;
   if ($('setting-popup-size')) $('setting-popup-size').value = state.popupSize || 'default';
   if ($('setting-detail-mode')) {
     $('setting-detail-mode').value = state.detailMode || 'fullscreen';
@@ -833,13 +883,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const actionEl = $(`action-${site}`);
     if (actionEl) actionEl.value = state.siteActions[site] || 'save';
   });
-  
+
   if (state.popupSize === 'compact') {
     document.body.classList.add('compact-mode');
   }
 
   state.dismissedNotifs = localCache.dismissedNotifs || {};
-  
+
   updateLibrarySortUI();
 
   if (state.auth?.authKey) {
@@ -868,6 +918,8 @@ function showScreen(name) {
     if (emailEl) {
       emailEl.textContent = state.auth?.email || 'غير معروف';
     }
+    // Initialize the tab position on screen open
+    setTimeout(() => switchSettingsTab('general'), 10);
   }
 }
 
@@ -880,6 +932,10 @@ function setupEventListeners() {
 
   $$('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  $$('.settings-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchSettingsTab(btn.dataset.settingsTab));
   });
 
   const contentArea = document.querySelector('.content-area');
@@ -928,7 +984,7 @@ function setupEventListeners() {
 
   const backBtn = $('back-btn');
   if (backBtn) backBtn.addEventListener('click', goBack);
-  
+
   const overlayBg = document.querySelector('.detail-overlay-bg');
   if (overlayBg) {
     overlayBg.addEventListener('click', () => {
@@ -970,7 +1026,7 @@ function setupEventListeners() {
   $('search-toggle').addEventListener('click', toggleSearch);
   $('settings-btn').addEventListener('click', () => showScreen('settings'));
   $('settings-back-btn').addEventListener('click', () => showScreen('main'));
-  
+
   const refreshBtn = $('refresh-btn');
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => {
@@ -988,6 +1044,20 @@ function setupEventListeners() {
     chrome.storage.local.set({ autoSave: state.autoSave });
   });
 
+  if ($('setting-toast-enabled')) {
+    $('setting-toast-enabled').addEventListener('change', (e) => {
+      state.toastEnabled = e.target.checked;
+      chrome.storage.local.set({ toastEnabled: state.toastEnabled });
+    });
+  }
+
+  if ($('setting-toast-position')) {
+    $('setting-toast-position').addEventListener('change', (e) => {
+      state.toastPosition = e.target.value;
+      chrome.storage.local.set({ toastPosition: state.toastPosition });
+    });
+  }
+
   $('setting-show-sort').addEventListener('change', (e) => {
     state.showLibrarySort = e.target.checked;
     chrome.storage.local.set({ showLibrarySort: state.showLibrarySort });
@@ -996,7 +1066,7 @@ function setupEventListeners() {
 
   const settingPopupSize = $('setting-popup-size');
   const settingDetailMode = $('setting-detail-mode');
-  
+
   if (settingDetailMode) {
     settingDetailMode.addEventListener('change', async (e) => {
       state.detailMode = e.target.value;
@@ -1173,7 +1243,7 @@ async function loadLibrary(forceRefresh = false) {
     renderMovies();
     renderSeries();
     renderContinue();
-    
+
     // Render Stats
     chrome.storage.local.get(['library_cache']).then(cached => {
       const cache = cached.library_cache;
@@ -1200,7 +1270,7 @@ async function loadLibrary(forceRefresh = false) {
       const metaSelect = $('setting-meta-addon');
       if (metaSelect) {
         metaSelect.innerHTML = '';
-        
+
         addons.forEach(addon => {
           if (!addon.manifest || !addon.manifest.resources) return;
           let supportsMeta = false;
@@ -1271,7 +1341,7 @@ function renderSearchResults() {
       <div class="empty-state-icon">🔍</div><div>لم يتم العثور على نتائج</div></div>`;
     return;
   }
-  
+
   results.forEach((item, index) => {
     const card = createItemCard(item);
     card.style.animationDelay = `${index * 30}ms`;
@@ -1282,14 +1352,14 @@ function renderSearchResults() {
 function renderMovies() {
   const grid = $('movies-grid');
   grid.innerHTML = '';
-  
+
   if (!state.library.movies.length) {
     const t = I18N[state.language || 'ar'];
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
       <div class="empty-state-icon">🎬</div><div>${t.empty_movies || 'مكتبة الأفلام فارغة'}</div></div>`;
     return;
   }
-  
+
   state.library.movies.forEach((item, index) => {
     const card = createItemCard(item);
     card.style.animationDelay = `${index * 30}ms`;
@@ -1300,14 +1370,14 @@ function renderMovies() {
 function renderSeries() {
   const grid = $('series-grid');
   grid.innerHTML = '';
-  
+
   if (!state.library.series.length) {
     const t = I18N[state.language || 'ar'];
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
       <div class="empty-state-icon">📺</div><div>${t.empty_series || 'لا توجد مسلسلات في مكتبتك'}</div></div>`;
     return;
   }
-  
+
   state.library.series.forEach((item, index) => {
     const card = createItemCard(item);
     card.style.animationDelay = `${index * 30}ms`;
@@ -1412,7 +1482,7 @@ async function openDetail(libraryItem) {
     showScreen('detail');
     $('screen-detail').classList.remove('show-modal');
   }
-  
+
   updateBackBtnIcon();
 
   state.isFromSearch = state.currentTab === 'search-results';
@@ -1505,19 +1575,30 @@ function renderDetailBasic(item) {
 
   const progressEl = $('detail-watch-progress');
   if (progressEl) progressEl.innerHTML = '';
-  
+
   updateWatchButtonsUI();
 }
 
 function updateWatchButtonsUI() {
   const isApp = state.openMethod === 'app';
   const lang = state.language || 'ar';
-  
+  const t = I18N[lang];
+
+  const mainBtnText = $('btn-web').querySelector('span');
+  if (mainBtnText) {
+    if (state.currentDetail && state.currentDetail.activeVideo) {
+      const v = state.currentDetail.activeVideo;
+      mainBtnText.textContent = t.play_episode ? t.play_episode.replace('{s}', v.season).replace('{e}', v.episode) : `شاهد S${v.season}E${v.episode} الآن`;
+    } else {
+      mainBtnText.textContent = t.watch_now || "مشاهدة الآن";
+    }
+  }
+
   const secondaryBtn = $('btn-app');
   if (secondaryBtn) {
     const span = secondaryBtn.querySelector('span');
     const iconCircle = secondaryBtn.querySelector('.icon-circle');
-    
+
     if (isApp) {
       secondaryBtn.title = I18N[lang].web_btn || "المتصفح";
       if (span) span.textContent = I18N[lang].web_btn || "المتصفح";
@@ -1542,16 +1623,69 @@ function renderDetail(meta, libraryItem) {
 
   $('detail-rating').textContent = meta.imdbRating ? `⭐ ${meta.imdbRating}` : '';
 
+  // Smart Progress Tracking & Episodes Browser
   const progressEl = $('detail-watch-progress');
-  if (progressEl) {
-    let watchInfo = '';
-    const s = libraryItem.state;
-    if (s) {
-      if (libraryItem.type === 'series' && s.video_id) {
+  const episodesSection = $('episodes-browser-section');
+  const isSeries = libraryItem.type === 'series';
+  const t = I18N[state.language || 'ar'];
+
+  if (isSeries && meta.videos && meta.videos.length > 0) {
+    const sortedVideos = meta.videos.sort((a, b) => (a.season === 0 ? Infinity : a.season) - (b.season === 0 ? Infinity : b.season) || a.episode - b.episode);
+    const s = libraryItem.state || {};
+    const curIdx = sortedVideos.findIndex(v => v.id === s.video_id);
+
+    let activeVideo = null;
+    let activeStatus = '';
+
+    if (curIdx !== -1) {
+      const isFinished = s.timeOffset > 0 && s.duration > 0 && (s.timeOffset / s.duration) >= 0.95;
+      if (!isFinished && s.timeOffset > 0) {
+        activeStatus = 'resume';
+        activeVideo = sortedVideos[curIdx];
+      } else if (curIdx + 1 < sortedVideos.length) {
+        activeStatus = 'next';
+        activeVideo = sortedVideos[curIdx + 1];
+      }
+    }
+    if (!activeVideo) {
+      activeStatus = 'start';
+      activeVideo = sortedVideos[0];
+    }
+
+    state.currentDetail.activeVideo = activeVideo;
+    state.currentDetail.activeStatus = activeStatus;
+
+    if (progressEl) {
+      let watchInfo = '';
+      if (activeStatus === 'resume') {
+        const text = t.resume_episode ? t.resume_episode.replace('{s}', activeVideo.season).replace('{e}', activeVideo.episode) : `استكمال S${activeVideo.season}E${activeVideo.episode}`;
+        watchInfo += `<span class="meta-chip highlight-chip" style="border-color:var(--accent);color:var(--accent-light);">${text}</span>`;
+      } else if (activeStatus === 'next') {
+        const text = t.next_episode ? t.next_episode.replace('{s}', activeVideo.season).replace('{e}', activeVideo.episode) : `الحلقة التالية: S${activeVideo.season}E${activeVideo.episode}`;
+        watchInfo += `<span class="meta-chip highlight-chip" style="border-color:var(--success);color:var(--success);">${text}</span>`;
+      } else if (s.video_id) {
         const parts = s.video_id.split(':');
         if (parts.length >= 3) {
-          watchInfo += `<span class="meta-chip highlight-chip" style="border-color:var(--accent);color:var(--accent-light);">الموسم ${parts[1]} · الحلقة ${parts[2]}</span>`;
+          const seasonNum = parseInt(parts[1], 10);
+          let seasonText = `الموسم ${parts[1]}`;
+          if (seasonNum === 0) {
+            seasonText = (state.language === 'ar' || !state.language) ? 'حلقات خاصة' : 'Specials';
+          } else if (t.season_n) {
+            seasonText = t.season_n.replace('{n}', parts[1]);
+          }
+          watchInfo += `<span class="meta-chip highlight-chip" style="border-color:var(--accent);color:var(--accent-light);">${seasonText} · الحلقة ${parts[2]}</span>`;
         }
+      }
+
+      const hasNewEpsCount = countNewEpisodes(libraryItem);
+      if (hasNewEpsCount > 0) {
+        const text = t.new_episodes_count ? t.new_episodes_count.replace('{count}', hasNewEpsCount) : `${hasNewEpsCount} حلقات جديدة`;
+        watchInfo += `<span class="new-episodes-count-badge">
+          ${text}
+          <button class="mark-read-btn" title="${t.mark_read_title || 'تحديد كمقروء'}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </span>`;
       }
 
       const totalMin = Math.floor((s.duration || 0) / 60000);
@@ -1565,8 +1699,135 @@ function renderDetail(meta, libraryItem) {
           watchInfo += `<span class="meta-chip">مكتمل</span>`;
         }
       }
+      progressEl.innerHTML = watchInfo;
+
+      const markReadBtn = progressEl.querySelector('.mark-read-btn');
+      if (markReadBtn) {
+        markReadBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dismissNotification(libraryItem);
+          openDetail(libraryItem); // refresh
+        });
+      }
     }
-    progressEl.innerHTML = watchInfo;
+
+    // Episodes Browser
+    if (episodesSection) {
+      episodesSection.classList.remove('hidden');
+      const seasons = [...new Set(sortedVideos.map(v => v.season))];
+      const seasonSelector = $('season-selector');
+      seasonSelector.innerHTML = seasons.map(s => {
+        let sn;
+        if (s === 0) {
+          sn = (state.language === 'ar' || !state.language) ? 'حلقات خاصة' : 'Specials';
+        } else {
+          sn = t.season_n ? t.season_n.replace('{n}', s) : `الموسم ${s}`;
+        }
+        return `<option value="${s}" ${s === activeVideo.season ? 'selected' : ''}>${sn}</option>`;
+      }).join('');
+
+      const allVidIds = sortedVideos.map(vid => vid.id);
+      let watchedSet = new Set();
+      if (s.watched) {
+        watchedSet = parseWatchedBitfield(s.watched, allVidIds);
+      } else if (s.timesWatched > 0) {
+        allVidIds.forEach(id => watchedSet.add(id));
+      }
+
+      const renderEpisodes = (season) => {
+        const eps = sortedVideos.filter(v => v.season == season);
+        const now = new Date();
+        const list = $('episodes-list');
+        list.innerHTML = eps.map(v => {
+          const isEpWatched = (s.video_id === v.id && s.timeOffset > 0 && s.duration > 0 && (s.timeOffset / s.duration) >= 0.95) || watchedSet.has(v.id);
+          const isUnreleased = v.released && new Date(v.released) > now;
+          const thumbHTML = isUnreleased
+            ? `<div style="width:100%;height:100%;background:linear-gradient(135deg, rgba(30,30,36,0.8), rgba(20,20,26,0.8));display:flex;flex-direction:column;justify-content:center;align-items:center;backdrop-filter:blur(4px);">
+                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                 <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:0.5px;">${t.coming_soon || 'قريباً'}</span>
+               </div>`
+            : `<img src="${v.thumbnail || meta.background || meta.poster}" loading="lazy">`;
+
+          return `
+          <div class="episode-card ${v.id === activeVideo.id ? 'active' : ''} ${isUnreleased ? 'unreleased' : ''}" data-id="${v.id}">
+            <div class="episode-thumb">
+              ${thumbHTML}
+              <div class="episode-badge">S${v.season} E${v.episode}</div>
+              ${!isUnreleased ? `
+              <button class="ep-mark-watched-btn ${isEpWatched ? 'watched' : ''}" title="${isEpWatched ? (t.unmark_read_title || 'إلغاء المشاهدة') : (t.mark_read_title || 'تحديد كمقروء')}" data-ep-id="${v.id}">
+                <svg class="icon-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <svg class="icon-cross" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+              ` : ''}
+            </div>
+            <div class="episode-info">
+              <div class="episode-title" title="${escapeHTML(v.name || `Episode ${v.episode}`)}" ${isUnreleased ? 'style="color:rgba(255,255,255,0.5);"' : ''}>${escapeHTML(v.name || `Episode ${v.episode}`)}</div>
+              <div class="episode-date" ${isUnreleased ? 'style="color:var(--accent-light);font-weight:500;"' : ''}>${v.released ? new Date(v.released).toLocaleDateString() : ''}</div>
+            </div>
+          </div>
+          `;
+        }).join('');
+        list.querySelectorAll('.episode-card').forEach(card => {
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.ep-mark-watched-btn')) {
+              e.stopPropagation();
+              const vidId = e.target.closest('.ep-mark-watched-btn').dataset.epId;
+              const btn = e.target.closest('.ep-mark-watched-btn');
+              const isCurrentlyWatched = btn.classList.contains('watched');
+              btn.style.opacity = '0.5';
+              markEpisodeWatched(libraryItem, vidId, isCurrentlyWatched);
+              return;
+            }
+            const vid = sortedVideos.find(v => v.id === card.dataset.id);
+            if (vid) {
+              state.currentDetail.activeVideo = vid;
+              updateWatchButtonsUI();
+              list.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
+              card.classList.add('active');
+            }
+          });
+        });
+      };
+
+      renderEpisodes(activeVideo.season);
+      seasonSelector.onchange = (e) => renderEpisodes(parseInt(e.target.value));
+
+      const markSeasonBtn = $('mark-season-watched-btn');
+      if (markSeasonBtn) {
+        // Find if all episodes in current season are watched
+        const checkSeasonWatchedStatus = () => {
+          const currentSeason = parseInt(seasonSelector.value);
+          const seasonVids = sortedVideos.filter(v => v.season === currentSeason);
+          const allWatched = seasonVids.length > 0 && seasonVids.every(v => {
+            return (s.video_id === v.id && s.timeOffset > 0 && s.duration > 0 && (s.timeOffset / s.duration) >= 0.95) || watchedSet.has(v.id);
+          });
+          if (allWatched) {
+            markSeasonBtn.classList.add('watched');
+            $('mark-season-text').textContent = t.unmark_season_watched || 'إلغاء مشاهدة الموسم';
+            markSeasonBtn.title = t.unmark_season_watched || 'إلغاء مشاهدة الموسم';
+          } else {
+            markSeasonBtn.classList.remove('watched');
+            $('mark-season-text').textContent = t.mark_season_watched || 'مشاهدة الموسم';
+            markSeasonBtn.title = t.mark_season_watched || 'مشاهدة الموسم';
+          }
+        };
+        checkSeasonWatchedStatus();
+        seasonSelector.addEventListener('change', checkSeasonWatchedStatus);
+
+        markSeasonBtn.onclick = (e) => {
+          e.stopPropagation();
+          const currentSeason = parseInt(seasonSelector.value);
+          const isCurrentlyWatched = markSeasonBtn.classList.contains('watched');
+          markSeasonBtn.style.opacity = '0.5';
+          markSeasonWatched(libraryItem, currentSeason, isCurrentlyWatched);
+        };
+      }
+    }
+  } else {
+    state.currentDetail.activeVideo = null;
+    state.currentDetail.activeStatus = '';
+    if (progressEl) progressEl.innerHTML = '';
+    if (episodesSection) episodesSection.classList.add('hidden');
   }
 
   $('detail-genres').innerHTML = (meta.genres || []).map(g =>
@@ -1690,7 +1951,7 @@ function switchTab(tabId) {
     const indicator = document.querySelector('.tab-indicator');
     if (indicator) {
       indicator.style.width = `${btn.offsetWidth}px`;
-      
+
       // Calculate position. Handle RTL correctly if offsetLeft behaves differently
       // In RTL, offsetLeft is still relative to offsetParent's left edge.
       indicator.style.transform = `translateX(${btn.offsetLeft}px)`;
@@ -1700,6 +1961,24 @@ function switchTab(tabId) {
   const content = $(contentId);
   if (content) content.classList.remove('hidden');
   updateLibrarySortUI();
+}
+
+function switchSettingsTab(tabId) {
+  $$('.settings-tab-btn').forEach(b => b.classList.remove('active'));
+  $$('.settings-tab-content').forEach(c => c.classList.add('hidden'));
+  
+  const btn = document.querySelector(`[data-settings-tab="${tabId}"]`);
+  if (btn) {
+    btn.classList.add('active');
+    const indicator = document.querySelector('.settings-tab-indicator');
+    if (indicator) {
+      indicator.style.width = `${btn.offsetWidth}px`;
+      indicator.style.transform = `translateX(${btn.offsetLeft}px)`;
+    }
+  }
+  
+  const content = $(`settings-tab-${tabId}`);
+  if (content) content.classList.remove('hidden');
 }
 
 // ==================== Search ====================
@@ -1801,16 +2080,18 @@ function renderSearchResults(results) {
 // ==================== Detail Actions ====================
 function openStremioWeb() {
   if (!state.currentDetail) return;
-  const { libraryItem } = state.currentDetail;
+  const { libraryItem, activeVideo } = state.currentDetail;
   const imdbId = libraryItem._id || libraryItem.imdb_id;
-  chrome.runtime.sendMessage({ type: 'OPEN_STREMIO_WEB', imdbId, mediaType: libraryItem.type });
+  const videoId = activeVideo ? activeVideo.id : null;
+  chrome.runtime.sendMessage({ type: 'OPEN_STREMIO_WEB', imdbId, mediaType: libraryItem.type, videoId });
 }
 
 function openStremioApp() {
   if (!state.currentDetail) return;
-  const { libraryItem } = state.currentDetail;
+  const { libraryItem, activeVideo } = state.currentDetail;
   const imdbId = libraryItem._id || libraryItem.imdb_id;
-  chrome.runtime.sendMessage({ type: 'OPEN_STREMIO_APP', imdbId, mediaType: libraryItem.type });
+  const videoId = activeVideo ? activeVideo.id : null;
+  chrome.runtime.sendMessage({ type: 'OPEN_STREMIO_APP', imdbId, mediaType: libraryItem.type, videoId });
 }
 
 async function handleAddToLibrary() {
@@ -1835,6 +2116,214 @@ async function handleAddToLibrary() {
     showToast(`${I18N[state.language || 'ar'].msg_error}: ${e.message}`, 'error');
     btn.disabled = false;
   }
+}
+
+function parseWatchedBitfield(serialized, videoIds) {
+  if (!serialized || typeof serialized !== 'string') return new Set();
+  const parts = serialized.split(':');
+  if (parts.length < 3) return new Set();
+
+  const base64Data = parts.pop();
+  const lastLength = parseInt(parts.pop(), 10);
+  const lastVideoId = parts.join(':');
+  const watched = new Set();
+
+  try {
+    const binaryStr = atob(base64Data);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let b = 0; b < binaryStr.length; b++) bytes[b] = binaryStr.charCodeAt(b);
+    const inflated = window.pako ? window.pako.inflate(bytes) : pako.inflate(bytes);
+
+    const lastVideoIdx = videoIds.indexOf(lastVideoId);
+    const offset = lastVideoIdx === -1 ? 0 : (lastLength - 1) - lastVideoIdx;
+
+    for (let i = 0; i < inflated.length * 8; i++) {
+      const byteIdx = Math.floor(i / 8);
+      const bitIdx = i % 8;
+      if (inflated[byteIdx] & (1 << bitIdx)) {
+        const vidIdx = i - offset;
+        if (vidIdx >= 0 && vidIdx < videoIds.length) {
+          watched.add(videoIds[vidIdx]);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('parseWatchedBitfield err:', e);
+  }
+  return watched;
+}
+
+function encodeWatchedBitfield(watchedVideoIds, seriesId, videoIds) {
+  if (!watchedVideoIds || watchedVideoIds.size === 0) return null;
+  const numBytes = Math.ceil(videoIds.length / 8);
+  const bytes = new Uint8Array(numBytes);
+  for (let i = 0; i < videoIds.length; i++) {
+    if (watchedVideoIds.has(videoIds[i])) {
+      bytes[Math.floor(i / 8)] |= (1 << (i % 8));
+    }
+  }
+  let deflated;
+  try { 
+    deflated = window.pako ? window.pako.deflate(bytes) : pako.deflate(bytes); 
+  } catch (e) { 
+    console.error('Bitfield compression failed:', e);
+    throw new Error('Compression failed'); 
+  }
+  let binaryStr = '';
+  for (let i = 0; i < deflated.length; i++) {
+    binaryStr += String.fromCharCode(deflated[i]);
+  }
+  const base64Data = btoa(binaryStr);
+  const lastVideoId = videoIds[videoIds.length - 1] || seriesId;
+  const length = videoIds.length;
+  return `${lastVideoId}:${length}:${base64Data}`;
+}
+
+async function saveWatchedState(item, allVideos, watchedSet, targetVideoId, tOffset, dur, isRemoved = false) {
+  let watchedString = null;
+  try {
+    watchedString = encodeWatchedBitfield(watchedSet, item._id || item.imdb_id, allVideos);
+  } catch (e) {
+    showToast(I18N[state.language || 'ar'].msg_error || 'خطأ', 'error');
+    console.error("Aborted saveWatchedState to prevent data loss.");
+    return;
+  }
+  let tWatched = item.state ? item.state.timesWatched || 0 : 0;
+  if (watchedSet.size === 0) tWatched = 0;
+  else if (watchedSet.size === allVideos.length) tWatched = 1;
+
+  const prevTimeWatched = item.state ? item.state.timeWatched || 0 : 0;
+  const prevOverall = item.state ? item.state.overallTimeWatched || 0 : 0;
+
+  const payloadItem = {
+    ...item,
+    _mtime: new Date().toISOString(),
+    state: {
+      ...(item.state || {}),
+      video_id: targetVideoId,
+      timeOffset: tOffset,
+      timeWatched: Math.max(prevTimeWatched, 1),
+      overallTimeWatched: Math.max(prevOverall, 1),
+      duration: dur,
+      watched: watchedString || null,
+      timesWatched: tWatched,
+      lastWatched: new Date().toISOString()
+    }
+  };
+
+  if (state.auth && state.auth.authKey) {
+    try {
+      const resp = await fetch(`https://api.strem.io/api/datastorePut`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({
+          authKey: state.auth.authKey,
+          collection: 'libraryItem',
+          changes: [payloadItem]
+        })
+      });
+      const data = await resp.json();
+      if (resp.ok && !data.error) {
+        const msg = isRemoved 
+          ? (I18N[state.language || 'ar'].msg_removed_watched || 'تم إزالة المشاهدة')
+          : (I18N[state.language || 'ar'].msg_marked_watched || 'تم التحديث بنجاح');
+        showToast(msg, 'success');
+        state.currentDetail.libraryItem = payloadItem;
+        openDetail(payloadItem);
+        Library.invalidate();
+      } else {
+        showToast(I18N[state.language || 'ar'].msg_error || 'خطأ', 'error');
+      }
+    } catch (e) {
+      showToast(I18N[state.language || 'ar'].msg_error || 'خطأ', 'error');
+    }
+  }
+}
+
+async function markEpisodeWatched(item, videoId, remove = false) {
+  const meta = state.currentDetail && state.currentDetail.meta ? state.currentDetail.meta : null;
+  if (!meta || !meta.videos) return;
+  const sorted = meta.videos.sort((a, b) => (a.season === 0 ? Infinity : a.season) - (b.season === 0 ? Infinity : b.season) || a.episode - b.episode);
+  const allVideos = sorted.map(v => v.id);
+
+  let targetVideoId = videoId;
+  let tOffset = 1;
+  let dur = 0;
+
+  const curIdx = sorted.findIndex(v => v.id === videoId);
+  if (remove) {
+    targetVideoId = videoId;
+    tOffset = 0;
+    dur = 1;
+  } else {
+    if (curIdx !== -1 && curIdx + 1 < sorted.length) {
+      targetVideoId = sorted[curIdx + 1].id;
+      tOffset = 0;
+      dur = 0;
+    } else {
+      targetVideoId = videoId;
+      tOffset = 1;
+      dur = 1;
+    }
+  }
+
+  let watchedSet = new Set();
+  if (item.state && typeof item.state.watched === 'string') {
+    watchedSet = parseWatchedBitfield(item.state.watched, allVideos);
+  } else if (item.state && (item.state.timesWatched || 0) > 0) {
+    allVideos.forEach(v => watchedSet.add(v));
+  }
+
+  if (remove) watchedSet.delete(videoId);
+  else watchedSet.add(videoId);
+
+  await saveWatchedState(item, allVideos, watchedSet, targetVideoId, tOffset, dur);
+}
+
+async function markSeasonWatched(item, season, remove = false) {
+  const meta = state.currentDetail && state.currentDetail.meta ? state.currentDetail.meta : null;
+  if (!meta || !meta.videos) return;
+  const sorted = meta.videos.sort((a, b) => (a.season === 0 ? Infinity : a.season) - (b.season === 0 ? Infinity : b.season) || a.episode - b.episode);
+  const allVideos = sorted.map(v => v.id);
+
+  const seasonVideos = sorted.filter(v => v.season === season);
+  if (seasonVideos.length === 0) return;
+
+  let targetVideoId = item.state ? item.state.video_id : null;
+  let tOffset = 1;
+  let dur = 0;
+
+  if (remove) {
+    targetVideoId = seasonVideos[0].id;
+    tOffset = 0;
+    dur = 1;
+  } else {
+    const lastEpIdx = sorted.findIndex(v => v.id === seasonVideos[seasonVideos.length - 1].id);
+    if (lastEpIdx !== -1 && lastEpIdx + 1 < sorted.length) {
+      targetVideoId = sorted[lastEpIdx + 1].id;
+      tOffset = 0;
+      dur = 0;
+    } else {
+      targetVideoId = seasonVideos[seasonVideos.length - 1].id;
+      tOffset = 1;
+      dur = 1;
+    }
+  }
+
+  let watchedSet = new Set();
+  if (item.state && typeof item.state.watched === 'string') {
+    watchedSet = parseWatchedBitfield(item.state.watched, allVideos);
+  } else if (item.state && (item.state.timesWatched || 0) > 0) {
+    allVideos.forEach(v => watchedSet.add(v));
+  }
+
+  if (remove) {
+    seasonVideos.forEach(v => watchedSet.delete(v.id));
+  } else {
+    seasonVideos.forEach(v => watchedSet.add(v.id));
+  }
+
+  await saveWatchedState(item, allVideos, watchedSet, targetVideoId, tOffset, dur);
 }
 
 async function handleMarkWatched() {
@@ -1916,7 +2405,7 @@ function goBack() {
   } else {
     showScreen('main');
   }
-  
+
   state.currentDetail = null;
   if (state.isFromSearch) {
     const searchModal = $('search-modal');
@@ -1973,11 +2462,11 @@ function dismissNotification(item, card) {
   const latestReleased = videos && videos.length > 0 ? Math.max(...videos) : Date.now();
   state.dismissedNotifs[item._id] = latestReleased;
   chrome.storage.local.set({ dismissedNotifs: state.dismissedNotifs });
-  
+
   if (state.auth && state.auth.authKey) {
     StremioAPI.clearProgress(state.auth.authKey, item).catch(console.error);
   }
-  
+
   if (card) {
     card.style.opacity = '0';
     setTimeout(() => {
@@ -1999,15 +2488,15 @@ async function fetchNotifications(libraryItems) {
   for (let i = 0; i < seriesIds.length; i += BATCH) batches.push(seriesIds.slice(i, i + BATCH));
   const itemMap = {};
   libraryItems.forEach((i) => { itemMap[i._id] = i; });
-  
-  const results = await Promise.all(batches.map(batch => 
+
+  const results = await Promise.all(batches.map(batch =>
     fetch(`https://v3-cinemeta.strem.io/catalog/series/last-videos/lastVideosIds=${batch.join(',')}.json`).then(r => r.json()).catch(() => ({ metasDetailed: [] }))
   ));
-  
+
   const notifications = {};
   const notificationVideos = {};
   const now = new Date();
-  
+
   results.forEach(result => {
     (result.metasDetailed || []).forEach(meta => {
       const item = itemMap[meta.id || meta.imdb_id];
@@ -2016,7 +2505,7 @@ async function fetchNotifications(libraryItems) {
       const ctime = item._ctime ? new Date(item._ctime) : null;
       const baseline = (lastWatched && ctime && lastWatched > ctime) ? lastWatched : ctime;
       if (!baseline) return;
-      
+
       const newVideos = (meta.videos || []).filter(v => {
         if (!v.released) return false;
         const released = new Date(v.released);
@@ -2030,7 +2519,7 @@ async function fetchNotifications(libraryItems) {
       }
     });
   });
-  
+
   state.stremioNotifications = { items: notifications, videos: notificationVideos, fetchedAt: Date.now() };
 }
 
@@ -2039,7 +2528,7 @@ async function fetchNotifications(libraryItems) {
 function updateBackBtnIcon() {
   const btn = $('back-btn');
   if (!btn) return;
-  
+
   if (state.detailMode === 'card') {
     btn.innerHTML = `
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -2057,4 +2546,3 @@ function updateBackBtnIcon() {
     btn.removeAttribute('style');
   }
 }
-  

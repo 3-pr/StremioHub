@@ -63,14 +63,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'OPEN_STREMIO_WEB') {
-    const { imdbId, mediaType } = message;
-    const url = `https://web.stremio.com/#/detail/${mediaType}/${imdbId}`;
+    const { imdbId, mediaType, videoId } = message;
+    const url = videoId 
+      ? `https://web.stremio.com/#/detail/${mediaType}/${imdbId}/${videoId}`
+      : `https://web.stremio.com/#/detail/${mediaType}/${imdbId}`;
     chrome.tabs.create({ url });
   }
 
   if (message.type === 'OPEN_STREMIO_APP') {
-    const { imdbId, mediaType } = message;
-    const url = `stremio:///detail/${mediaType}/${imdbId}`;
+    const { imdbId, mediaType, videoId } = message;
+    const url = videoId
+      ? `stremio:///detail/${mediaType}/${imdbId}/${videoId}`
+      : `stremio:///detail/${mediaType}/${imdbId}`;
     chrome.tabs.create({ url });
   }
 
@@ -140,7 +144,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Invalidate library cache
         await chrome.storage.local.remove(['library_cache']);
 
-        sendResponse({ success });
+        sendResponse({ success, itemMeta });
       } catch (err) {
         sendResponse({ success: false, error: err.message });
       }

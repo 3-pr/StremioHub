@@ -89,7 +89,7 @@
         }, (res) => {
           if (feedbackCallback) feedbackCallback(res && res.success);
           if (statusSpan) {
-            if (res && res.success) {
+            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
               statusSpan.textContent = 'Opened ✓';
             } else {
               statusSpan.textContent = 'Error';
@@ -114,7 +114,7 @@
         }, (res) => {
           if (feedbackCallback) feedbackCallback(res && res.success);
           if (statusSpan) {
-            if (res && res.success) {
+            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
               statusSpan.textContent = 'Saved!';
               statusSpan.style.color = '#34d399';
             } else {
@@ -332,7 +332,7 @@
       if (action === 'open') {
         span.textContent = 'Opening...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Opened ✓';
           } else {
             span.textContent = 'Failed';
@@ -348,7 +348,7 @@
       if (autoSave) {
         span.textContent = 'Saving...';
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Saved to Stremio ✓';
             stremioButton.style.borderColor = '#34d399';
             stremioButton.style.backgroundColor = 'rgba(52, 211, 153, 0.15)';
@@ -438,7 +438,7 @@
       if (action === 'open') {
         stremioButton.innerHTML = 'Opening...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type, imdbId }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             stremioButton.innerHTML = 'Opened ✓';
           } else {
             stremioButton.innerHTML = 'Failed';
@@ -454,7 +454,7 @@
       if (autoSave) {
         stremioButton.innerHTML = 'Saving...';
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type, imdbId }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             stremioButton.innerHTML = 'Saved ✓';
             stremioButton.style.background = '#34d399';
           } else {
@@ -572,7 +572,7 @@
       if (action === 'open') {
         span.textContent = 'Opening...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Opened ✓';
           } else {
             span.textContent = 'Failed';
@@ -588,7 +588,7 @@
       if (autoSave) {
         span.textContent = 'Saving...';
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Saved ✓';
             stremioButton.style.border = '1px solid #34d399';
             span.style.color = '#34d399';
@@ -653,7 +653,7 @@
         if (action === 'open') {
           span.textContent = 'Opening...';
           chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-            if (res && res.success) {
+            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
               span.textContent = 'Opened ✓';
               span.style.color = '#34d399';
             } else {
@@ -674,7 +674,7 @@
         if (autoSave) {
           span.textContent = 'Saving...';
           chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-            if (res && res.success) {
+            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
               span.textContent = 'Saved ✓';
               span.style.color = '#34d399';
             } else {
@@ -764,7 +764,7 @@
       if (action === 'open') {
         span.textContent = 'جارِ الفتح...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'تم الفتح ✓';
           } else {
             span.textContent = 'فشل';
@@ -786,7 +786,7 @@
           year,
           mediaType: type
         }, (res) => {
-          if (res && res.success) {
+          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'تم الحفظ بنجاح ✓';
             span.style.color = '#34d399';
             wrapper.style.borderColor = '#34d399';
@@ -847,5 +847,207 @@
   observer.observe(document.body, { childList: true, subtree: true });
 
   setTimeout(() => observer.disconnect(), 10000);
+
+  function showStremioHubToast(meta) {
+    if (!meta) return;
+
+    chrome.storage.local.get({
+      toastEnabled: true,
+      toastPosition: 'bottom-right',
+      language: 'ar'
+    }, (settings) => {
+      if (settings.toastEnabled === false) return;
+
+      let toastShown = false;
+      const displayToast = () => {
+        if (toastShown) return;
+        toastShown = true;
+
+        // Create the host for the shadow DOM
+        const host = document.createElement('div');
+        host.id = 'stremio-hub-toast-host';
+        host.style.cssText = 'position: fixed; z-index: 2147483647; top: 0; left: 0; width: 0; height: 0; overflow: visible; pointer-events: none;';
+        
+        // Attach Shadow DOM
+        const shadow = host.attachShadow({ mode: 'closed' });
+
+        // Build the styles
+        const pos = settings.toastPosition || 'bottom-right';
+        let positionStyles = '';
+        let initialTransform = 'translateY(150%) scale(0.9)';
+        let exitTransform = 'translateY(150%) scale(0.9)';
+
+        if (pos === 'top-right') {
+          positionStyles = 'top: 24px; right: 24px;';
+          initialTransform = 'translateY(-150%) scale(0.9)';
+          exitTransform = 'translateY(-150%) scale(0.9)';
+        } else if (pos === 'top-left') {
+          positionStyles = 'top: 24px; left: 24px;';
+          initialTransform = 'translateY(-150%) scale(0.9)';
+          exitTransform = 'translateY(-150%) scale(0.9)';
+        } else if (pos === 'bottom-left') {
+          positionStyles = 'bottom: 24px; left: 24px;';
+          initialTransform = 'translateY(150%) scale(0.9)';
+          exitTransform = 'translateY(150%) scale(0.9)';
+        } else {
+          // bottom-right
+          positionStyles = 'bottom: 24px; right: 24px;';
+          initialTransform = 'translateY(150%) scale(0.9)';
+          exitTransform = 'translateY(150%) scale(0.9)';
+        }
+
+        const isAr = settings.language === 'ar';
+        const successMsg = isAr ? 'تم الحفظ بنجاح' : 'Saved successfully';
+        const unknownTitle = isAr ? 'عنوان غير معروف' : 'Unknown title';
+
+        // Add font-face directly inside the shadow root so it's isolated but active
+        const style = document.createElement('style');
+        style.textContent = `
+          @font-face {
+            font-family: 'Thmanyah';
+            src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Regular.woff2')}') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'Thmanyah';
+            src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Bold.woff2')}') format('woff2');
+            font-weight: bold;
+            font-style: normal;
+          }
+          .toast-container {
+            position: fixed;
+            ${positionStyles}
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(123, 94, 167, 0.5);
+            border-radius: 12px;
+            color: #fff;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 15px rgba(123, 94, 167, 0.3);
+            font-family: 'Thmanyah', system-ui, -apple-system, sans-serif;
+            transform: ${initialTransform};
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            direction: ${isAr ? 'rtl' : 'ltr'};
+            min-width: 260px;
+            max-width: 350px;
+            pointer-events: auto;
+          }
+          .toast-container.show {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+          .poster {
+            width: 44px;
+            height: 66px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+          }
+          .poster.loaded {
+            opacity: 1;
+          }
+          .poster-placeholder {
+            width: 44px;
+            height: 66px;
+            background: #2a2a32;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+          }
+          .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          }
+          .success-msg {
+            font-size: 13px;
+            color: #34d399;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .title {
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+          }
+          .year {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-inline-start: 6px;
+            font-weight: normal;
+          }
+        `;
+        shadow.appendChild(style);
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-container';
+
+        const imgHtml = meta.poster 
+          ? `<img src="${meta.poster}" class="poster" onload="this.classList.add('loaded')">`
+          : `<div class="poster-placeholder">📺</div>`;
+
+        const yearHtml = meta.year ? `<span class="year">(${meta.year})</span>` : '';
+
+        toast.innerHTML = `
+          ${imgHtml}
+          <div class="content">
+            <div class="success-msg">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              ${successMsg}
+            </div>
+            <div class="title">
+              ${meta.name || unknownTitle} ${yearHtml}
+            </div>
+          </div>
+        `;
+
+        shadow.appendChild(toast);
+        document.body.appendChild(host);
+
+        // Trigger entrance animation
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            toast.classList.add('show');
+          });
+        });
+
+        // Trigger exit animation and cleanup
+        setTimeout(() => {
+          toast.classList.remove('show');
+          toast.style.transform = exitTransform; // force exit direction
+          setTimeout(() => host.remove(), 500); // wait for animation to end
+        }, 4000);
+      };
+
+      if (meta.poster) {
+        const img = new Image();
+        img.onload = img.onerror = displayToast;
+        img.src = meta.poster;
+        // fallback display after 250ms
+        setTimeout(displayToast, 250);
+      } else {
+        displayToast();
+      }
+    });
+  }
 
 })();
