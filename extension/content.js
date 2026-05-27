@@ -1025,10 +1025,13 @@
   }
 
   // Observer for dynamically loaded content (specifically useful for Google Search and SPAs)
+  let observerTimer = null;
   const observer = new MutationObserver(() => {
-    if (!document.getElementById('stremio-hub-btn') && !document.getElementById('stremio-google-btn')) {
-      init();
-    }
+    // If button already exists, skip
+    if (document.getElementById('stremio-hub-btn') || document.getElementById('stremio-google-btn')) return;
+    // Debounce: wait 150ms to batch rapid DOM mutations before re-injecting
+    clearTimeout(observerTimer);
+    observerTimer = setTimeout(init, 150);
   });
 
   observer.observe(document.body, { childList: true, subtree: true });

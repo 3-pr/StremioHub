@@ -634,9 +634,8 @@ function isWatchedItem(item) {
 const CACHE_DURATION = 5 * 60 * 1000;
 
 const Library = {
-  async get(authKey, forceRefresh = false, sortType = 'lastwatched', filterType = 'all') {
-    const cached = await chrome.storage.local.get(['library_cache']);
-    const cache = cached.library_cache;
+  async get(authKey, forceRefresh = false, sortType = 'lastwatched', filterType = 'all', injectedCache = null) {
+    const cache = injectedCache || (await chrome.storage.local.get(['library_cache'])).library_cache;
     const isValid = cache && (Date.now() - cache.lastFetch < CACHE_DURATION) && !forceRefresh;
 
     let movies, series, continueWatching;
@@ -837,7 +836,15 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 // ==================== Init ====================
 document.addEventListener('DOMContentLoaded', async () => {
-  const localCache = await chrome.storage.local.get(['stremio_auth', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'siteActions', 'language', 'toastEnabled', 'toastPosition']);
+  // Show skeleton UI immediately before any async work (perceived speed boost)
+  const moviesGrid = document.getElementById('movies-grid');
+  const seriesGrid = document.getElementById('series-grid');
+  const continueList = document.getElementById('continue-list');
+  if (moviesGrid) moviesGrid.appendChild(createSkeletonCards(6));
+  if (seriesGrid) seriesGrid.appendChild(createSkeletonCards(6));
+  if (continueList) continueList.appendChild(createSkeletonList(3));
+
+  const localCache = await chrome.storage.local.get(['stremio_auth', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'siteActions', 'language', 'toastEnabled', 'toastPosition', 'library_cache']);
 
   if (localCache.language) state.language = localCache.language;
   applyI18N(state.language);
@@ -896,7 +903,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (state.auth?.authKey) {
     showScreen('main');
-    await loadLibrary();
+    await loadLibrary(false, localCache.library_cache);
     await checkPendingSearch();
     // Initialize tab indicator position
     setTimeout(() => {
@@ -1227,7 +1234,7 @@ async function handleLogout() {
 }
 
 // ==================== Library Loading ====================
-async function loadLibrary(forceRefresh = false) {
+async function loadLibrary(forceRefresh = false, prefetchedCache = null) {
   if (!state.auth) return;
   $('movies-grid').innerHTML = '';
   $('movies-grid').appendChild(createSkeletonCards(6));
@@ -1237,7 +1244,7 @@ async function loadLibrary(forceRefresh = false) {
   $('continue-list').appendChild(createSkeletonList(3));
 
   try {
-    const libraryData = await Library.get(state.auth.authKey, forceRefresh, state.librarySort, state.libraryFilter);
+    const libraryData = await Library.get(state.auth.authKey, forceRefresh, state.librarySort, state.libraryFilter, prefetchedCache);
     state.library.movies = libraryData.movies;
     state.library.series = libraryData.series;
     state.library.continue = libraryData.continue;

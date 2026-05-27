@@ -62,7 +62,7 @@ Until the official store release, you can install StremioHub locally:
    ```
 2. Open Google Chrome (or any Chromium-based browser) and navigate to `chrome://extensions/`.
 3. Enable **Developer mode** (toggle switch in the top right corner).
-4. Click on **Load unpacked** and select the `StremioHub` folder you extracted.
+4. Click on **Load unpacked** and select the `extension` folder inside the `StremioHub` folder you extracted.
 5. Pin the extension to your toolbar, log in with your Stremio account, and enjoy!
 
 ## 🔐 Privacy & Security
