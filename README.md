@@ -34,15 +34,15 @@
 
 **1. Auto-save from External Sites**  
 Seamlessly inject "Save to Library" buttons on sites like Google Search, Letterboxd, IMDB, Metacritic, Rotten Tomatoes, and Trakt!
-https://github.com/3-pr/StremioHub/raw/main/assets/videos/websites.mp4
+<video src="https://github.com/3-pr/StremioHub/raw/main/assets/videos/websites.mp4" controls="controls" muted="muted" width="100%"></video>
 
 **2. Quick Search via Right-Click**  
 Highlight any text, right-click, and instantly search Stremio for it.
-https://github.com/3-pr/StremioHub/raw/main/assets/videos/search.mp4
+<video src="https://github.com/3-pr/StremioHub/raw/main/assets/videos/search.mp4" controls="controls" muted="muted" width="100%"></video>
 
 **3. Manage Watch Progress**  
 Easily mark episodes or movies as watched directly from the popup.
-https://github.com/3-pr/StremioHub/raw/main/assets/videos/watch.mp4
+<video src="https://github.com/3-pr/StremioHub/raw/main/assets/videos/watch.mp4" controls="controls" muted="muted" width="100%"></video>
 
 </details>
 
