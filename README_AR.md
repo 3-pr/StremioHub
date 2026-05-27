@@ -30,23 +30,22 @@
 - **🌍 دعم ثنائي اللغة:** دعم كامل للغتين العربية والإنجليزية مع محاذاة أصلية لليمين (RTL) وتبديل فوري.
 - **🛠 تخصيص مرن:** اختر شكل نافذة التفاصيل (بطاقة عائمة أو شاشة كاملة)، تحكم بحجم الإضافة، والمزيد!
 
-<details>
-<summary><b>🎬 استعراض الميزات</b></summary>
-<br>
+### 🎬 استعراض الميزات
 
 **1. الحفظ التلقائي من المواقع الخارجية**  
 أزرار مدمجة بذكاء في مواقع مثل بحث جوجل، IMDB، Letterboxd، ومؤخراً Trakt لحفظ الأعمال بضغطة زر.
-<video src="https://github.com/3-pr/StremioHub/raw/main/assets/videos/websites.mp4" controls="controls" muted="muted" width="100%"></video>
+
+https://github.com/3-pr/StremioHub/raw/main/assets/videos/websites.mp4
 
 **2. البحث السريع بالزر الأيمن**  
 حدد أي نص، اضغط كليك يمين، وابحث عنه فوراً في Stremio.
-<video src="https://github.com/3-pr/StremioHub/raw/main/assets/videos/search.mp4" controls="controls" muted="muted" width="100%"></video>
+
+https://github.com/3-pr/StremioHub/raw/main/assets/videos/search.mp4
 
 **3. إدارة سجل المشاهدة**  
 تحديد الحلقات أو الأفلام كمقروءة (شوهدت) بسهولة تامة من داخل الواجهة.
-<video src="https://github.com/3-pr/StremioHub/raw/main/assets/videos/watch.mp4" controls="controls" muted="muted" width="100%"></video>
 
-</details>
+https://github.com/3-pr/StremioHub/raw/main/assets/videos/watch.mp4
 
 </div>
 
