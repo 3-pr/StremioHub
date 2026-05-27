@@ -36,15 +36,15 @@
 
 **1. الحفظ التلقائي من المواقع الخارجية**  
 أزرار مدمجة بذكاء في مواقع مثل بحث جوجل، IMDB، Letterboxd، ومؤخراً Trakt لحفظ الأعمال بضغطة زر.
-<video src="assets/videos/websites.mp4" controls width="100%"></video>
+https://github.com/3-pr/StremioHub/raw/main/assets/videos/websites.mp4
 
 **2. البحث السريع بالزر الأيمن**  
 حدد أي نص، اضغط كليك يمين، وابحث عنه فوراً في Stremio.
-<video src="assets/videos/search.mp4" controls width="100%"></video>
+https://github.com/3-pr/StremioHub/raw/main/assets/videos/search.mp4
 
 **3. إدارة سجل المشاهدة**  
 تحديد الحلقات أو الأفلام كمقروءة (شوهدت) بسهولة تامة من داخل الواجهة.
-<video src="assets/videos/watch.mp4" controls width="100%"></video>
+https://github.com/3-pr/StremioHub/raw/main/assets/videos/watch.mp4
 
 </details>
 
