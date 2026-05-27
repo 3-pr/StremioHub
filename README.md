@@ -21,11 +21,30 @@
 ## ✨ Features
 
 - **🌐 Cross-Site Integration**: Adds smart "Save to Library" and "Open in Stremio" buttons directly on your favorite movie discovery websites.
-- **📚 Full Library Management**: View, filter, and sort your Stremio library (Movies, Series, and Continue Watching) natively in your browser popup.
+- **🖱️ Right-Click Quick Search**: Highlight any movie or show name, right-click, and instantly search for it in Stremio.
+- **📚 Full Library Management**: View, filter, sort, and mark items as watched (Movies, Series, and Continue Watching) natively in your browser popup.
 - **🎨 Glassmorphism UI**: A breathtaking, premium Apple-inspired dark mode design with buttery smooth micro-animations.
 - **🔗 Smart Add-on Support**: Dynamically fetches descriptions and metadata from your actual Stremio add-ons (like TMDB) to provide rich, localized context.
 - **🌍 Bilingual Support**: Fully supports Arabic & English with native right-to-left (RTL) alignments and live toggling.
 - **🛠 Highly Customizable**: Choose between floating pop-up cards or full-screen immersive details views, adjust popup sizes, and more!
+
+<details>
+<summary><b>🎬 Feature Demonstrations</b></summary>
+<br>
+
+**1. Auto-save from External Sites**  
+Seamlessly inject "Save to Library" buttons on sites like Google Search, Letterboxd, IMDB, Metacritic, Rotten Tomatoes, and Trakt!
+<video src="assets/videos/websites.mp4" controls width="100%"></video>
+
+**2. Quick Search via Right-Click**  
+Highlight any text, right-click, and instantly search Stremio for it.
+<video src="assets/videos/search.mp4" controls width="100%"></video>
+
+**3. Manage Watch Progress**  
+Easily mark episodes or movies as watched directly from the popup.
+<video src="assets/videos/watch.mp4" controls width="100%"></video>
+
+</details>
 
 ## 🚀 Chrome Extension (Coming Soon)
 
