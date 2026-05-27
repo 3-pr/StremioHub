@@ -817,7 +817,8 @@ const state = {
     imdb: 'save',
     tmdb: 'save',
     rt: 'save',
-    metacritic: 'save'
+    metacritic: 'save',
+    trakt: 'save'
   },
   sitesEnabled: {
     google: true,
@@ -825,7 +826,8 @@ const state = {
     imdb: true,
     tmdb: true,
     rt: true,
-    metacritic: true
+    metacritic: true,
+    trakt: true
   }
 };
 
@@ -876,7 +878,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   // Sync sites toggles and actions
-  const sites = ['google', 'letterboxd', 'imdb', 'tmdb', 'rt', 'metacritic'];
+  const sites = ['google', 'letterboxd', 'imdb', 'tmdb', 'rt', 'metacritic', 'trakt'];
   sites.forEach(site => {
     const el = $(`site-${site}`);
     if (el) el.checked = state.sitesEnabled[site] !== false;
@@ -1104,7 +1106,7 @@ function setupEventListeners() {
     });
   }
 
-  const sites = ['google', 'letterboxd', 'imdb', 'tmdb', 'rt', 'metacritic'];
+  const sites = ['google', 'letterboxd', 'imdb', 'tmdb', 'rt', 'metacritic', 'trakt'];
   sites.forEach(site => {
     const el = $(`site-${site}`);
     if (el) {

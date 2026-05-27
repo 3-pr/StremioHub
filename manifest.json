@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "icons": {
@@ -28,7 +28,9 @@
       "https://www.themoviedb.org/*",
       "https://www.rottentomatoes.com/*",
       "https://www.metacritic.com/*",
-      "https://www.google.com/search*"
+      "https://www.google.com/search*",
+      "https://trakt.tv/*",
+      "https://*.trakt.tv/*"
     ],
     "content_scripts": [
       {
@@ -44,7 +46,11 @@
           "*://www.rottentomatoes.com/tv/*",
           "*://www.metacritic.com/movie/*",
           "*://www.metacritic.com/tv/*",
-          "*://www.google.com/search*"
+          "*://www.google.com/search*",
+          "*://trakt.tv/movies/*",
+          "*://trakt.tv/shows/*",
+          "*://*.trakt.tv/movies/*",
+          "*://*.trakt.tv/shows/*"
         ],
         "js": ["content.js"],
         "css": ["styles/shared.css"],

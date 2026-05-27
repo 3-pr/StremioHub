@@ -10,28 +10,32 @@
 
   const detectors = {
     google: {
-      match: () => hostname.includes('google.com') && href.includes('/search'),
+      match: () => hostname.includes('google.com') && window.location.href.includes('/search'),
       inject: injectGoogle
     },
     letterboxd: {
-      match: () => hostname.includes('letterboxd.com') && href.includes('/film/'),
+      match: () => hostname.includes('letterboxd.com') && window.location.href.includes('/film/'),
       inject: injectLetterboxd
     },
     imdb: {
-      match: () => hostname.includes('imdb.com') && /\/title\/tt\d+/.test(href),
+      match: () => hostname.includes('imdb.com') && /\/title\/tt\d+/.test(window.location.href),
       inject: injectIMDB
     },
     tmdb: {
-      match: () => hostname.includes('themoviedb.org') && (href.includes('/movie/') || href.includes('/tv/')),
+      match: () => hostname.includes('themoviedb.org') && (window.location.href.includes('/movie/') || window.location.href.includes('/tv/')),
       inject: injectTMDB
     },
     rt: {
-      match: () => hostname.includes('rottentomatoes.com') && (href.includes('/m/') || href.includes('/tv/')),
+      match: () => hostname.includes('rottentomatoes.com') && (window.location.href.includes('/m/') || window.location.href.includes('/tv/')),
       inject: injectRT
     },
     metacritic: {
-      match: () => hostname.includes('metacritic.com') && (href.includes('/movie/') || href.includes('/tv/')),
+      match: () => hostname.includes('metacritic.com') && (window.location.href.includes('/movie/') || window.location.href.includes('/tv/')),
       inject: injectMetacritic
+    },
+    trakt: {
+      match: () => hostname.includes('trakt.tv') && (window.location.href.includes('/movies/') || window.location.href.includes('/shows/')),
+      inject: injectTrakt
     }
   };
 
@@ -42,10 +46,10 @@
 
     const stored = await chrome.storage.local.get(['sitesEnabled', 'siteActions']);
     const sitesEnabled = stored.sitesEnabled || {
-      google: true, letterboxd: true, imdb: true, tmdb: true, rt: true, metacritic: true
+      google: true, letterboxd: true, imdb: true, tmdb: true, rt: true, metacritic: true, trakt: true
     };
     const siteActions = stored.siteActions || {
-      google: 'save', letterboxd: 'save', imdb: 'save', tmdb: 'save', rt: 'save', metacritic: 'save'
+      google: 'save', letterboxd: 'save', imdb: 'save', tmdb: 'save', rt: 'save', metacritic: 'save', trakt: 'save'
     };
 
     for (const [key, detector] of Object.entries(detectors)) {
@@ -61,18 +65,41 @@
     if (document.getElementById('stremio-google-btn')) return;
 
     // Get Title and Type from Knowledge Panel
-    const titleEl = document.querySelector('[data-attrid="title"]') || document.querySelector('h2[data-attrid="title"]');
-    const title = titleEl?.textContent?.trim();
-    const subtitleEl = document.querySelector('[data-attrid="subtitle"]');
-    const subtitle = subtitleEl?.textContent?.toLowerCase() || '';
-    const type = (subtitle.includes('tv') || subtitle.includes('series')) ? 'series' : 'movie';
-    const year = subtitle.match(/\\d{4}/)?.[0];
+    let titleEl = document.querySelector('[data-attrid="title"]') || document.querySelector('h2[data-attrid="title"]');
+    let title = titleEl?.textContent?.trim();
+    let subtitleEl = document.querySelector('[data-attrid="subtitle"]');
+    let subtitle = subtitleEl?.textContent?.toLowerCase() || '';
+    let year = subtitle.match(/\d{4}/)?.[0];
+    let type = 'movie'; // default
+
+    // Detect type using common English/Arabic keywords in subtitle
+    if (subtitle.match(/(tv|series|season|seasons|مسلسل|موسم|مواسم|حلقات)/i)) {
+      type = 'series';
+    }
+
+    // Advanced: Extract from Google's internal data-maindata for exact canonical info
+    const mainDataAttr = document.querySelector('[data-maindata]')?.getAttribute('data-maindata');
+    if (mainDataAttr) {
+        try {
+            const mainData = JSON.parse(mainDataAttr);
+            // mainData[2] often holds the canonical title (useful if UI title is missing)
+            if (!title && mainData[2]) title = mainData[2];
+            // mainData[4][0] often holds the entity type ("TV" or "Movie")
+            if (mainData[4] && Array.isArray(mainData[4])) {
+                const typeStr = mainData[4][0]?.toLowerCase();
+                if (typeStr === 'tv') type = 'series';
+                else if (typeStr === 'movie') type = 'movie';
+            }
+        } catch(e) {
+            console.error('StremioHub: Failed to parse data-maindata', e);
+        }
+    }
 
     if (!title) return;
 
     // Try to get IMDB ID from DOM for perfect matching
     let imdbLink = document.querySelector("a[href*='https://www.imdb.com/title']")?.href || document.querySelector("a[href*='https://m.imdb.com/title']")?.href;
-    const imdbIdMatch = imdbLink?.match(new RegExp('/title/(tt\d+)'));
+    const imdbIdMatch = imdbLink?.match(/\/title\/(tt\d+)/);
     const imdbId = imdbIdMatch ? imdbIdMatch[1] : null;
 
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
@@ -89,7 +116,8 @@
         }, (res) => {
           if (feedbackCallback) feedbackCallback(res && res.success);
           if (statusSpan) {
-            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+            if (res && res.success) {
+              if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
               statusSpan.textContent = 'Opened ✓';
             } else {
               statusSpan.textContent = 'Error';
@@ -114,7 +142,8 @@
         }, (res) => {
           if (feedbackCallback) feedbackCallback(res && res.success);
           if (statusSpan) {
-            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+            if (res && res.success) {
+              if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
               statusSpan.textContent = 'Saved!';
               statusSpan.style.color = '#34d399';
             } else {
@@ -135,8 +164,8 @@
         });
         setTimeout(() => {
           if (statusSpan) {
-             statusSpan.textContent = btnText;
-             statusSpan.style.color = 'inherit';
+            statusSpan.textContent = btnText;
+            statusSpan.style.color = 'inherit';
           }
         }, 2000);
       }
@@ -208,7 +237,7 @@
                </div>
              </a>`;
           const link = watchNowEle.querySelector('a');
-          
+
           link.addEventListener('mouseenter', () => {
             link.style.background = 'rgba(145, 109, 213, 0.2)';
             link.style.transform = 'translateY(-1px)';
@@ -248,7 +277,7 @@
       fabStremio.href = "#";
       fabStremio.innerHTML = `<img style='width: 48px;height: 48px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.3s ease;' src="${iconUrl}" />`;
       fabStremio.style.cssText = "position: fixed; bottom: 30px; right: 30px; z-index: 999999; cursor: pointer; transition: 0.2s;";
-      
+
       const img = fabStremio.querySelector('img');
 
       fabStremio.addEventListener('mouseenter', () => img.style.transform = 'scale(1.1)');
@@ -280,12 +309,12 @@
     if (!title) {
       title = document.querySelector('h1.headline-1, .headline-1, h1[class*="title"]')?.textContent?.trim();
     }
-    
+
     let year = document.querySelector('.inline-production-masthead .releasedate a')?.textContent?.trim();
     if (!year) {
       year = document.querySelector('.number[href*="/films/year/"], a[href*="/films/year/"]')?.textContent?.trim();
     }
-    
+
     const type = 'movie';
 
     if (!title) return;
@@ -332,7 +361,8 @@
       if (action === 'open') {
         span.textContent = 'Opening...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Opened ✓';
           } else {
             span.textContent = 'Failed';
@@ -348,7 +378,8 @@
       if (autoSave) {
         span.textContent = 'Saving...';
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Saved to Stremio ✓';
             stremioButton.style.borderColor = '#34d399';
             stremioButton.style.backgroundColor = 'rgba(52, 211, 153, 0.15)';
@@ -438,7 +469,8 @@
       if (action === 'open') {
         stremioButton.innerHTML = 'Opening...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type, imdbId }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             stremioButton.innerHTML = 'Opened ✓';
           } else {
             stremioButton.innerHTML = 'Failed';
@@ -454,7 +486,8 @@
       if (autoSave) {
         stremioButton.innerHTML = 'Saving...';
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type, imdbId }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             stremioButton.innerHTML = 'Saved ✓';
             stremioButton.style.background = '#34d399';
           } else {
@@ -490,7 +523,7 @@
 
     const title = document.querySelector('.title h2 a, h2.title a, h2 a')?.textContent?.trim() || document.querySelector('h2')?.textContent?.trim();
     const year = document.querySelector('.release_date, .release, .tag')?.textContent?.match(/\d{4}/)?.[0];
-    const type = href.includes('/tv/') ? 'series' : 'movie';
+    const type = window.location.href.includes('/tv/') ? 'series' : 'movie';
 
     if (!title) return;
 
@@ -507,7 +540,11 @@
     stremioButton.addEventListener('mouseenter', () => img.style.transform = 'scale(1.1)');
     stremioButton.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
 
-    const showFeedback = (isSuccess) => {
+    const showFeedback = (res) => {
+      const isSuccess = res && res.success;
+      if (isSuccess && res.itemMeta && typeof showStremioHubToast === 'function') {
+        showStremioHubToast(res.itemMeta);
+      }
       const color = isSuccess ? '#34d399' : '#f87171';
       img.style.boxShadow = `0 0 0 3px ${color}, 0 4px 12px ${color}80`;
       img.style.transform = 'scale(1.1)';
@@ -522,7 +559,7 @@
 
       if (action === 'open') {
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          showFeedback(res && res.success);
+          showFeedback(res);
         });
         return;
       }
@@ -532,7 +569,7 @@
 
       if (autoSave) {
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-          showFeedback(res && res.success);
+          showFeedback(res);
         });
       } else {
         chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
@@ -551,7 +588,7 @@
 
     const title = document.querySelector('h1, [data-qa="score-panel-title"]')?.textContent?.trim();
     const year = document.querySelector('.scoreboard__info, .info, [data-qa="movie-info-item"]')?.textContent?.match(/\d{4}/)?.[0];
-    const type = href.includes('/tv/') ? 'series' : 'movie';
+    const type = window.location.href.includes('/tv/') ? 'series' : 'movie';
 
     if (!title) return;
 
@@ -572,7 +609,8 @@
       if (action === 'open') {
         span.textContent = 'Opening...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Opened ✓';
           } else {
             span.textContent = 'Failed';
@@ -588,7 +626,8 @@
       if (autoSave) {
         span.textContent = 'Saving...';
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'Saved ✓';
             stremioButton.style.border = '1px solid #34d399';
             span.style.color = '#34d399';
@@ -618,86 +657,232 @@
   function injectMetacritic(action = 'save') {
     if (document.getElementById('stremio-hub-btn')) return;
 
-    const title = document.querySelector('h1')?.textContent?.trim();
+    const titleEl = document.querySelector('.c-productHero_title h1') || document.querySelector('h1');
+    const title = titleEl?.textContent?.trim();
     const year = document.querySelector('.c-productHero_score-container, .release_date, .c-heroMetadata')
       ?.textContent?.match(/\d{4}/)?.[0];
-    const type = href.includes('/tv/') ? 'series' : 'movie';
+    const type = window.location.href.includes('/tv/') ? 'series' : 'movie';
 
-    if (!title) return;
+    if (!title || !titleEl) return;
 
-    const whereToWatchContainer = document.querySelector('.where-to-watch__button')?.parentElement;
+    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
 
-    if (whereToWatchContainer) {
-      const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
-      const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
-      const stremioButton = document.createElement('button');
-      stremioButton.id = 'stremio-hub-btn';
-      stremioButton.type = 'button';
-      // Match Metacritic's native button classes
-      stremioButton.className = 'font-medium inline-flex items-center no-underline cursor-pointer border-solid ring-0 shadow-none outline-0 rounded-[0.3rem] transition-all duration-[150ms] ease-[ease] h-12 text-base leading-[26px] justify-center px-4 w-full where-to-watch__button';
-      stremioButton.style.cssText = 'border: 1px solid rgba(145, 109, 213, 0.4); background-color: rgba(145, 109, 213, 0.1); color: #9c83c2; margin-bottom: 12px;';
-      
-      stremioButton.innerHTML = `
-        <img style='width: 24px; height: 24px; border-radius: 4px; margin-right: 10px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.2);' src="${iconUrl}" />
-        <span class="leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-bold">${btnText}</span>
-      `;
+    const stremioButton = document.createElement('a');
+    stremioButton.id = 'stremio-hub-btn';
+    stremioButton.title = btnText;
+    stremioButton.innerHTML = `<img alt="${btnText}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" src="${iconUrl}"/>`;
 
-      stremioButton.addEventListener('mouseenter', () => stremioButton.style.backgroundColor = 'rgba(145, 109, 213, 0.2)');
-      stremioButton.addEventListener('mouseleave', () => stremioButton.style.backgroundColor = 'rgba(145, 109, 213, 0.1)');
+    // We make it inline-block and give it a little margin so it sits next to the title
+    stremioButton.setAttribute('style', 'margin-left: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;');
 
-      const span = stremioButton.querySelector('span');
+    const img = stremioButton.querySelector('img');
 
-      stremioButton.addEventListener('click', async (e) => {
-        e.preventDefault();
+    stremioButton.addEventListener('mouseenter', () => img.style.transform = 'scale(1.1)');
+    stremioButton.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
 
-        if (action === 'open') {
-          span.textContent = 'Opening...';
-          chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-              span.textContent = 'Opened ✓';
-              span.style.color = '#34d399';
-            } else {
-              span.textContent = 'Failed';
-              span.style.color = '#f87171';
-            }
-            setTimeout(() => {
-              span.textContent = btnText;
-              span.style.color = 'inherit';
-            }, 3000);
-          });
-          return;
-        }
+    const showFeedback = (res) => {
+      const isSuccess = res && res.success;
+      if (isSuccess && res.itemMeta && typeof showStremioHubToast === 'function') {
+        showStremioHubToast(res.itemMeta);
+      }
+      const color = isSuccess ? '#34d399' : '#f87171';
+      img.style.boxShadow = `0 0 0 3px ${color}, 0 4px 12px ${color}80`;
+      img.style.transform = 'scale(1.1)';
+      setTimeout(() => {
+        img.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+        img.style.transform = 'scale(1)';
+      }, 3000);
+    };
 
-        const stored = await chrome.storage.local.get('autoSave');
-        const autoSave = stored.autoSave !== false;
+    stremioButton.addEventListener('click', async (e) => {
+      e.preventDefault();
 
-        if (autoSave) {
-          span.textContent = 'Saving...';
-          chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-            if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-              span.textContent = 'Saved ✓';
-              span.style.color = '#34d399';
-            } else {
-              span.textContent = 'Failed';
-              span.style.color = '#f87171';
-            }
-            setTimeout(() => {
-              span.textContent = btnText;
-              span.style.color = 'inherit';
-            }, 3000);
-          });
-        } else {
-          span.textContent = 'Loading...';
-          chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
-          setTimeout(() => span.textContent = btnText, 2000);
-        }
+      if (action === 'open') {
+        chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
+          showFeedback(res);
+        });
+        return;
+      }
+
+      const stored = await chrome.storage.local.get('autoSave');
+      const autoSave = stored.autoSave !== false;
+
+      if (autoSave) {
+        chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
+          showFeedback(res);
+        });
+      } else {
+        chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
+      }
+    });
+
+    // Append directly to the h1 so it stays right next to the movie/show title permanently
+    titleEl.style.display = 'inline-flex';
+    titleEl.style.alignItems = 'center';
+    titleEl.appendChild(stremioButton);
+  }
+
+  // ==================== Trakt ====================
+
+  function injectTrakt(action = 'save') {
+    if (document.getElementById('stremio-hub-btn')) return;
+
+    const titleEl = document.querySelector('h1');
+    if (!titleEl) return;
+
+    let title = titleEl.childNodes[0]?.textContent?.trim() || titleEl.textContent?.trim();
+    let yearEl = document.querySelector('.year') || titleEl.querySelector('.year');
+    let year = yearEl?.textContent?.match(/\d{4}/)?.[0];
+
+    const type = window.location.href.includes('/shows/') ? 'series' : 'movie';
+
+    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
+
+    // Create the button using Trakt's classes so it adapts seamlessly
+    const stremioContainer = document.createElement('div');
+    stremioContainer.className = "where-to-watch-item svelte-k046bf";
+    stremioContainer.id = 'stremio-hub-btn';
+
+    stremioContainer.innerHTML = `
+      <a target="_blank" tabindex="0" href="#" class="svelte-tssxlx trakt-link" style="text-decoration:none;">
+        <div class="where-to-watch-item-content svelte-k046bf" data-variant="service" style="transition: 0.2s;">
+          <div class="trakt-where-to-watch-logo svelte-1t4scfj" data-size="default">
+            <div class="trakt-streaming-service-logo svelte-1jvqy9q">
+              <img loading="lazy" src="${iconUrl}" alt="Stremio" class="svelte-cmmi3r image-animation-enabled trakt-service-logo image-loaded" style="border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            </div>
+          </div>
+          <p class="svelte-k046bf stremio-trakt-text" style="color: #99aabb; font-weight: 500; margin-top: 4px; transition: color 0.2s;">${btnText}</p>
+        </div>
+      </a>
+    `;
+
+    const link = stremioContainer.querySelector('a');
+    const innerDiv = stremioContainer.querySelector('.where-to-watch-item-content');
+    const span = stremioContainer.querySelector('.stremio-trakt-text');
+
+    link.addEventListener('mouseenter', () => {
+      innerDiv.style.transform = 'translateY(-2px)';
+      span.style.color = '#a78bfa';
+    });
+    link.addEventListener('mouseleave', () => {
+      innerDiv.style.transform = 'translateY(0)';
+      span.style.color = '#99aabb';
+    });
+
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      if (action === 'open') {
+        span.textContent = 'Opening...';
+        chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+            span.textContent = 'Opened ✓';
+            span.style.color = '#34d399';
+          } else {
+            span.textContent = 'Failed';
+            span.style.color = '#f87171';
+          }
+          setTimeout(() => { span.textContent = btnText; span.style.color = '#a78bfa'; }, 3000);
+        });
+        return;
+      }
+
+      const stored = await chrome.storage.local.get('autoSave');
+      const autoSave = stored.autoSave !== false;
+
+      if (autoSave) {
+        span.textContent = 'Saving...';
+        chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+            span.textContent = 'Saved ✓';
+            span.style.color = '#34d399';
+            innerDiv.style.borderColor = '#34d399';
+          } else {
+            span.textContent = 'Failed';
+            span.style.color = '#f87171';
+            innerDiv.style.borderColor = '#f87171';
+          }
+          setTimeout(() => {
+            span.textContent = btnText;
+            span.style.color = '#a78bfa';
+            innerDiv.style.borderColor = 'rgba(145, 109, 213, 0.4)';
+          }, 3000);
+        });
+      } else {
+        span.textContent = 'Loading...';
+        chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
+        setTimeout(() => span.textContent = btnText, 2000);
+      }
+    });
+
+    // Helper to find the container
+    const findWtwContainer = () => {
+      let container = null;
+      const allTitles = Array.from(document.querySelectorAll('.trakt-list-title span, h2, h3'));
+      const wtwTitle = allTitles.find(el => {
+        const text = el.textContent.toLowerCase();
+        return text.includes('where to watch') || text.includes('stream');
       });
 
-      whereToWatchContainer.insertBefore(stremioButton, whereToWatchContainer.firstChild);
+      if (wtwTitle) {
+        const section = wtwTitle.closest('.section-list-container') || wtwTitle.closest('section');
+        if (section) {
+          container = section.querySelector('.section-list-horizontal-scroll') || section.querySelector('.trakt-list-item-container');
+
+          if (!container) {
+            const emptyState = section.querySelector('.section-list-empty-state');
+            if (emptyState) {
+              emptyState.innerHTML = '';
+              emptyState.style.display = 'flex';
+              emptyState.style.gap = '8px';
+              emptyState.style.flexDirection = 'row';
+              emptyState.style.justifyContent = 'flex-start';
+              container = emptyState;
+            }
+          }
+        }
+      }
+
+      if (!container) {
+        container = document.querySelector('.trakt-list-item-container.section-list-horizontal-scroll') || document.querySelector('.section-list-horizontal-scroll');
+      }
+      if (!container) {
+        const item = document.querySelector('.where-to-watch-item');
+        if (item) container = item.parentElement;
+      }
+      return container;
+    };
+
+    let whereToWatchContainer = findWtwContainer();
+
+    if (whereToWatchContainer) {
+      whereToWatchContainer.insertBefore(stremioContainer, whereToWatchContainer.firstChild);
     } else {
-      // Fallback
-      const target = document.querySelector('.c-productHero, .product-hero, .c-heroSection');
-      if (target) insertStremioButton(target, title, year, type, 'append', action);
+      // Fallback appending
+      const sidebar = document.querySelector('.sidebar') || document.querySelector('#summary-wrapper') || document.querySelector('.trakt-sidebar');
+      if (sidebar) {
+        sidebar.insertBefore(stremioContainer, sidebar.firstChild);
+      } else {
+        const actionWrapper = document.createElement('div');
+        actionWrapper.style.marginTop = '10px';
+        actionWrapper.appendChild(stremioContainer);
+        titleEl.parentElement.appendChild(actionWrapper);
+      }
+
+      // Relocate once dynamically loaded
+      let retries = 0;
+      const interval = setInterval(() => {
+        const dynamicContainer = findWtwContainer();
+        if (dynamicContainer) {
+          dynamicContainer.insertBefore(stremioContainer, dynamicContainer.firstChild);
+          clearInterval(interval);
+        }
+        if (retries++ > 20) clearInterval(interval); // Give up after 10 seconds
+      }, 500);
     }
   }
 
@@ -764,7 +949,8 @@
       if (action === 'open') {
         span.textContent = 'جارِ الفتح...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'تم الفتح ✓';
           } else {
             span.textContent = 'فشل';
@@ -786,7 +972,8 @@
           year,
           mediaType: type
         }, (res) => {
-          if (res && res.success) { if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
+          if (res && res.success) {
+            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
             span.textContent = 'تم الحفظ بنجاح ✓';
             span.style.color = '#34d399';
             wrapper.style.borderColor = '#34d399';
@@ -846,7 +1033,12 @@
 
   observer.observe(document.body, { childList: true, subtree: true });
 
-  setTimeout(() => observer.disconnect(), 10000);
+  // Disconnect the observer after 10 seconds for static sites to save resources.
+  // Keep it running for SPAs (like Metacritic, TMDB, Letterboxd) to handle client-side navigation.
+  const isSPA = hostname.includes('metacritic.com') || hostname.includes('themoviedb.org') || hostname.includes('letterboxd.com') || hostname.includes('rottentomatoes.com') || hostname.includes('trakt.tv');
+  if (!isSPA) {
+    setTimeout(() => observer.disconnect(), 10000);
+  }
 
   function showStremioHubToast(meta) {
     if (!meta) return;
@@ -867,7 +1059,7 @@
         const host = document.createElement('div');
         host.id = 'stremio-hub-toast-host';
         host.style.cssText = 'position: fixed; z-index: 2147483647; top: 0; left: 0; width: 0; height: 0; overflow: visible; pointer-events: none;';
-        
+
         // Attach Shadow DOM
         const shadow = host.attachShadow({ mode: 'closed' });
 
@@ -1001,7 +1193,7 @@
         const toast = document.createElement('div');
         toast.className = 'toast-container';
 
-        const imgHtml = meta.poster 
+        const imgHtml = meta.poster
           ? `<img src="${meta.poster}" class="poster" onload="this.classList.add('loaded')">`
           : `<div class="poster-placeholder">📺</div>`;
 
