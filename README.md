@@ -28,22 +28,23 @@
 - **🌍 Bilingual Support**: Fully supports Arabic & English with native right-to-left (RTL) alignments and live toggling.
 - **🛠 Highly Customizable**: Choose between floating pop-up cards or full-screen immersive details views, adjust popup sizes, and more!
 
-### 🎬 Feature Demonstrations
+<details>
+<summary><b>🎬 Feature Demonstrations</b></summary>
+<br>
 
 **1. Auto-save from External Sites**  
 Seamlessly inject "Save to Library" buttons on sites like Google Search, Letterboxd, IMDB, Metacritic, Rotten Tomatoes, and Trakt!
-
-https://github.com/3-pr/StremioHub/raw/main/assets/videos/websites.mp4
+<img src="assets/videos/websites.gif" width="100%" alt="Websites Demo">
 
 **2. Quick Search via Right-Click**  
 Highlight any text, right-click, and instantly search Stremio for it.
-
-https://github.com/3-pr/StremioHub/raw/main/assets/videos/search.mp4
+<img src="assets/videos/search.gif" width="100%" alt="Search Demo">
 
 **3. Manage Watch Progress**  
 Easily mark episodes or movies as watched directly from the popup.
+<img src="assets/videos/watch.gif" width="100%" alt="Watch Demo">
 
-https://github.com/3-pr/StremioHub/raw/main/assets/videos/watch.mp4
+</details>
 
 ## 🚀 Chrome Extension (Coming Soon)
 
