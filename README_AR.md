@@ -1,5 +1,5 @@
 <div align="center" dir="rtl">
-  <img src="icons/icon128.png" alt="شعار StremioHub" width="128" height="128">
+  <img src="extension/icons/icon128.png" alt="شعار StremioHub" width="128" height="128">
   <h1>StremioHub 🇸🇦</h1>
   <p><b>الرفيق الشامل لـ Stremio في متصفحك.</b></p>
   <p>
