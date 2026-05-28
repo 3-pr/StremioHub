@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="icons/icon128.png" alt="StremioHub Logo" width="128" height="128">
+  <img src="extension/icons/icon128.png" alt="StremioHub Logo" width="128" height="128">
   <h1>StremioHub</h1>
   <p><b>The all-in-one Stremio companion for your browser.</b></p>
   <p>
