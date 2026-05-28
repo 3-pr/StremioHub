@@ -11,6 +11,11 @@
     <a href="README_AR.md">🇸🇦 Read in Arabic (اقرأ بالعربية)</a>
   </p>
 </div>
+<div align="center">
+  <a href='https://ko-fi.com/V8P5206X9H' target='_blank'>
+    <img height='36' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' />
+  </a>
+</div>
 
 ---
 
