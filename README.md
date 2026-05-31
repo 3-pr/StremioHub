@@ -18,6 +18,10 @@
   <a href='https://ko-fi.com/V8P5206X9H' target='_blank'>
     <img height='36' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' />
   </a>
+  &nbsp;
+  <a href='https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg' target='_blank'>
+    <img height='36' src='https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png' alt='Available in the Chrome Web Store' />
+  </a>
 </div>
 
 ---
@@ -72,26 +76,35 @@ Easily mark episodes or movies as watched directly from the popup.
 
 </details>
 
-## 🚀 Chrome Web Store
+## 🏪 Chrome Web Store
 
-> The extension is currently under review for the Chrome Web Store. Stay tuned for a one-click install! ⏳
+<div align="center">
+  <a href="https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg" target="_blank">
+    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png" alt="Available in the Chrome Web Store" height="58">
+  </a>
+</div>
 
-## 🛠 Installation (Developer Mode)
+**StremioHub is now officially available on the Chrome Web Store!**  
+Install it with one click — no developer mode required. Automatic updates included.
 
-Until the official store release, you can install StremioHub locally:
+👉 [Install StremioHub from the Chrome Web Store](https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg)
 
-1. **Download the latest release:** Go to the [Releases page](https://github.com/3-pr/StremioHub/releases) and download the `.zip` file of the latest version, then extract it to a folder.
-   *Alternatively, you can clone the repository:*
+## 🛠 Manual Installation (Developer Mode)
+
+Alternatively, you can load the extension manually:
+
+1. **Download the latest release:** Go to the [Releases page](https://github.com/3-pr/StremioHub/releases) and download the `.zip` file, then extract it.
+   *Or clone the repository:*
    ```bash
    git clone https://github.com/3-pr/StremioHub.git
    ```
-2. Open Google Chrome (or any Chromium-based browser) and navigate to `chrome://extensions/`.
-3. Enable **Developer mode** (toggle switch in the top right corner).
-4. Click on **Load unpacked** and select the `extension` folder inside the `StremioHub` folder you extracted.
-5. Pin the extension to your toolbar, log in with your Stremio account, and enjoy!
+2. Open Chrome and navigate to `chrome://extensions/`.
+3. Enable **Developer mode** (toggle in the top right corner).
+4. Click **Load unpacked** and select the `extension` folder.
+5. Pin the extension, log in with your Stremio account, and enjoy!
 
-### Firefox
-Follow the same steps but load the `extension-firefox` folder at `about:debugging#/runtime/this-firefox`.
+### 🦊 Firefox
+Load the `extension-firefox` folder at `about:debugging#/runtime/this-firefox`.
 
 ## 🔐 Privacy & Security
 
