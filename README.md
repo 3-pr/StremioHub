@@ -20,7 +20,7 @@
   </a>
   &nbsp;
   <a href='https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg' target='_blank'>
-    <img height='36' src='https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png' alt='Available in the Chrome Web Store' />
+    <img height='36' src='assets/chrome-store-badge.svg' alt='Available in the Chrome Web Store' />
   </a>
 </div>
 
@@ -80,7 +80,7 @@ Easily mark episodes or movies as watched directly from the popup.
 
 <div align="center">
   <a href="https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg" target="_blank">
-    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png" alt="Available in the Chrome Web Store" height="58">
+    <img src="assets/chrome-store-badge.svg" alt="Available in the Chrome Web Store" height="58">
   </a>
 </div>
 
