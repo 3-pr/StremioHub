@@ -123,7 +123,49 @@ const I18N = {
     pos_top_right: "فوق يمين",
     pos_top_left: "فوق يسار",
     pos_bottom_right: "تحت يمين",
-    pos_bottom_left: "تحت يسار"
+    pos_bottom_left: "تحت يسار",
+    saved_accounts: "الحسابات المحفوظة",
+    save_account: "حفظ الحساب",
+    account_name: "اسم الحساب (اختياري)",
+    account_name_placeholder: "مثال: حسابي الأساسي",
+    switch_account_btn: "تبديل الحساب",
+    add_new_account: "إضافة حساب جديد",
+    back_to_accounts: "الرجوع للحسابات",
+    edit_account: "تعديل الحساب",
+    choose_avatar: "اختر صورتك",
+    cancel: "إلغاء",
+    save_changes: "حفظ",
+
+    // Addon Manager
+    tab_addons: "الإضافات",
+    addon_warning: "هذا القسم يُعدّل إعدادات Stremio مباشرةً. يُنصح بعمل نسخة احتياطية قبل أي تعديل.",
+    addon_backup_title: "النسخ الاحتياطي والاستعادة",
+    addon_backup_desc: "احفظ إعدادات إضافاتك الحالية أو أعدها من ملف سابق.",
+    addon_backup_btn: "تصدير نسخة",
+    addon_restore_btn: "استعادة",
+    addon_install_title: "تثبيت إضافة جديدة",
+    addon_install_desc: "أدخل رابط manifest.json للإضافة لتثبيتها في حسابك.",
+    addon_install_btn: "تثبيت",
+    addon_list_title: "الإضافات المثبتة",
+    addon_list_desc: "اسحب وأفلت لإعادة الترتيب. انقر تعديل للتحكم في الكتالوجات.",
+    addon_sync_btn: "مزامنة",
+    addon_protected: "محمية",
+    addon_edit_btn: "تعديل",
+    addon_remove_btn: "حذف",
+    catalog_modal_hint: "اسحب لإعادة الترتيب. عدّل الاسم أو أخفِ الكتالوج.",
+    addon_backup_prompt: "تم حفظ نسخة احتياطية تلقائياً. تابع بالتعديل.",
+    addon_backup_prompt_title: "هل تريد المتابعة?",
+    addon_backup_and_continue: "نسخ احتياطي وتابع",
+    addon_continue_anyway: "تابع بدون نسخ",
+    addon_install_ok: "تم تثبيت الإضافة ✓",
+    addon_remove_ok: "تم حذف الإضافة",
+    addon_restore_ok: "تم الاستعادة بنجاح ✓",
+    addon_sync_ok: "تمت المزامنة بنجاح ✓",
+    addon_catalog_save_ok: "تم حفظ الكتالوجات ✓",
+    addon_err_no_url: "أدخل رابط الإضافة",
+    addon_err_fetch: "فشل جلب بيانات الإضافة",
+    addon_err_save: "حدث خطأ أثناء الحفظ",
+    addon_refresh_btn: "تحديث"
   },
   en: {
     app_title: "StremioHub",
@@ -249,7 +291,49 @@ const I18N = {
     pos_top_right: "Top Right",
     pos_top_left: "Top Left",
     pos_bottom_right: "Bottom Right",
-    pos_bottom_left: "Bottom Left"
+    pos_bottom_left: "Bottom Left",
+    saved_accounts: "Saved Accounts",
+    save_account: "Save Account",
+    account_name: "Account Name (Optional)",
+    account_name_placeholder: "e.g. Main Account",
+    switch_account_btn: "Switch Account",
+    add_new_account: "Add New Account",
+    back_to_accounts: "Back to Accounts",
+    edit_account: "Edit Account",
+    choose_avatar: "Choose Avatar",
+    cancel: "Cancel",
+    save_changes: "Save",
+
+    // Addon Manager
+    tab_addons: "Add-ons",
+    addon_warning: "This section modifies Stremio settings directly. It's recommended to back up before any change.",
+    addon_backup_title: "Backup & Restore",
+    addon_backup_desc: "Save your current addon settings or restore from a previous file.",
+    addon_backup_btn: "Export Backup",
+    addon_restore_btn: "Restore",
+    addon_install_title: "Install New Addon",
+    addon_install_desc: "Enter a manifest.json URL to install an addon to your account.",
+    addon_install_btn: "Install",
+    addon_list_title: "Installed Add-ons",
+    addon_list_desc: "Drag & drop to reorder. Click Edit to manage catalogs.",
+    addon_sync_btn: "Sync",
+    addon_protected: "Protected",
+    addon_edit_btn: "Edit",
+    addon_remove_btn: "Remove",
+    catalog_modal_hint: "Drag to reorder. Edit names or hide catalogs from your home screen.",
+    addon_backup_prompt: "A backup was saved automatically. Continue with the change.",
+    addon_backup_prompt_title: "Want to continue?",
+    addon_backup_and_continue: "Backup & Continue",
+    addon_continue_anyway: "Continue without backup",
+    addon_install_ok: "Addon installed ✓",
+    addon_remove_ok: "Addon removed",
+    addon_restore_ok: "Restore successful ✓",
+    addon_sync_ok: "Synced successfully ✓",
+    addon_catalog_save_ok: "Catalogs saved ✓",
+    addon_err_no_url: "Please enter an addon URL",
+    addon_err_fetch: "Failed to fetch addon manifest",
+    addon_err_save: "Error saving changes",
+    addon_refresh_btn: "Refresh"
   }
 };
 
@@ -844,7 +928,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (seriesGrid) seriesGrid.appendChild(createSkeletonCards(6));
   if (continueList) continueList.appendChild(createSkeletonList(3));
 
-  const localCache = await chrome.storage.local.get(['stremio_auth', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'siteActions', 'language', 'toastEnabled', 'toastPosition', 'library_cache', 'currentScreen', 'currentTab', 'currentDetail', 'isFromSearch', 'searchQuery', 'isSearchModalOpen']);
+  const localCache = await chrome.storage.local.get(['stremio_auth', 'saved_accounts', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'siteActions', 'language', 'toastEnabled', 'toastPosition', 'library_cache', 'currentScreen', 'currentTab', 'currentDetail', 'isFromSearch', 'searchQuery', 'isSearchModalOpen']);
 
   if (localCache.currentScreen) state.currentScreen = localCache.currentScreen;
   if (localCache.currentTab) state.currentTab = localCache.currentTab;
@@ -856,6 +940,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if ($('setting-language')) $('setting-language').value = state.language;
 
   if (localCache.stremio_auth) state.auth = localCache.stremio_auth;
+  if (localCache.saved_accounts) state.saved_accounts = localCache.saved_accounts;
   if (localCache.autoSave !== undefined) state.autoSave = localCache.autoSave;
   if (localCache.showLibrarySort !== undefined) state.showLibrarySort = localCache.showLibrarySort;
   if (localCache.libraryFilter) state.libraryFilter = localCache.libraryFilter;
@@ -932,9 +1017,172 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } else {
     showScreen('login');
+    renderSavedAccounts(localCache.saved_accounts || []);
   }
 
   setupEventListeners();
+  initAvatarPicker();
+  initSettingsAvatarPicker();
+  setupAddonManagerListeners();
+});
+
+
+// ==================== Saved Accounts Rendering ====================
+function renderSavedAccounts(accounts) {
+  const section = $('saved-accounts-section');
+  const list = $('saved-accounts-list');
+  const loginFormContainer = $('login-form-container');
+  const backToAccountsBtn = $('back-to-accounts-btn');
+  if (!section || !list || !loginFormContainer) return;
+
+  if (!accounts || accounts.length === 0) {
+    section.classList.add('hidden');
+    loginFormContainer.classList.remove('hidden');
+    if (backToAccountsBtn) backToAccountsBtn.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+  loginFormContainer.classList.add('hidden');
+  if (backToAccountsBtn) backToAccountsBtn.classList.remove('hidden');
+  
+  list.innerHTML = '';
+
+  accounts.forEach((acc, index) => {
+    const card = document.createElement('div');
+    card.className = 'saved-account-card';
+    
+    // Fallback name if none provided
+    const displayName = acc.name || acc.email;
+    // Get first letter for icon
+    const initial = (acc.name || acc.email || '?').charAt(0).toUpperCase();
+
+    let avatarHtml = `<div class="saved-account-icon">${initial}</div>`;
+    if (acc.avatar_id && window.AVATARS) {
+      const av = window.AVATARS.find(a => a.id === acc.avatar_id);
+      if (av) {
+        avatarHtml = `<div class="saved-account-icon" style="background-color: ${av.bg_color}; border: none;"><img src="../assets/avatars/${av.storage_path}" alt="${av.display_name}"></div>`;
+      }
+    }
+
+    card.innerHTML = `
+      <div class="saved-account-info">
+        ${avatarHtml}
+        <div class="saved-account-details">
+          <span class="saved-account-name">${displayName}</span>
+        </div>
+      </div>
+      <div class="saved-account-actions">
+        <button class="saved-account-action-btn edit" title="تعديل" data-index="${index}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+        <button class="saved-account-action-btn delete" title="حذف" data-index="${index}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+      </div>
+    `;
+
+    // Click handler for login
+    card.querySelector('.saved-account-info').addEventListener('click', async () => {
+      setLoginLoading(true);
+      state.auth = acc.auth;
+      await chrome.storage.local.set({ stremio_auth: acc.auth });
+      showScreen('main');
+      await loadLibrary(true); // force refresh since we might be logging into a different account
+      setLoginLoading(false);
+    });
+
+    // Click handler for edit
+    card.querySelector('.saved-account-action-btn.edit').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEditAccountModal(index);
+    });
+
+    // Click handler for delete
+    card.querySelector('.saved-account-action-btn.delete').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const newAccounts = [...accounts];
+      newAccounts.splice(index, 1);
+      await chrome.storage.local.set({ saved_accounts: newAccounts });
+      renderSavedAccounts(newAccounts);
+    });
+
+    list.appendChild(card);
+  });
+}
+
+let editAccountActiveIndex = -1;
+
+function openEditAccountModal(index) {
+  const modal = $('edit-account-modal');
+  if (!modal) return;
+  const accounts = state.saved_accounts || [];
+  const acc = accounts[index];
+  if (!acc) return;
+  
+  editAccountActiveIndex = index;
+  window.editAccountSelectedAvatarId = acc.avatar_id || null;
+  
+  const nameInput = $('edit-account-name-input');
+  if (nameInput) nameInput.value = acc.name || acc.email || '';
+  
+  const container = $('edit-avatar-picker-list');
+  if (container && window.AVATARS) {
+    container.innerHTML = '';
+    window.AVATARS.forEach(avatar => {
+      const el = document.createElement('div');
+      el.className = 'avatar-item';
+      if (window.editAccountSelectedAvatarId === avatar.id) el.classList.add('selected');
+      el.style.backgroundColor = avatar.bg_color;
+      el.innerHTML = `<img src="../assets/avatars/${avatar.storage_path}" alt="${avatar.display_name}">`;
+      el.addEventListener('click', () => {
+        container.querySelectorAll('.avatar-item').forEach(i => i.classList.remove('selected'));
+        el.classList.add('selected');
+        window.editAccountSelectedAvatarId = avatar.id;
+      });
+      container.appendChild(el);
+    });
+  }
+  
+  modal.classList.remove('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const closeEditBtn = $('close-edit-account-btn');
+  const saveEditBtn = $('save-edit-account-btn');
+  const editModal = $('edit-account-modal');
+  
+  if (closeEditBtn && editModal) {
+    closeEditBtn.addEventListener('click', () => {
+      editModal.classList.add('hidden');
+    });
+  }
+  
+  if (saveEditBtn && editModal) {
+    saveEditBtn.addEventListener('click', async () => {
+      if (editAccountActiveIndex === -1) return;
+      const accounts = state.saved_accounts || [];
+      const acc = accounts[editAccountActiveIndex];
+      if (!acc) return;
+      
+      const nameInput = $('edit-account-name-input');
+      if (nameInput) acc.name = nameInput.value.trim();
+      
+      acc.avatar_id = window.editAccountSelectedAvatarId;
+      
+      await chrome.storage.local.set({ saved_accounts: accounts });
+      state.saved_accounts = accounts;
+      
+      // Re-render list
+      renderSavedAccounts(accounts);
+      
+      editModal.classList.add('hidden');
+      showToast(state.language === 'ar' ? 'تم تحديث الحساب' : 'Account updated', 'success');
+    });
+  }
 });
 
 // ==================== Screen Management ====================
@@ -949,13 +1197,252 @@ function showScreen(name) {
     if (emailEl) {
       emailEl.textContent = state.auth?.email || 'غير معروف';
     }
+    
+    const acc = (state.saved_accounts || []).find(a => a.email === state.auth?.email);
+    const avatarContainer = document.querySelector('.account-avatar');
+    if (avatarContainer) {
+      const editOverlayHtml = `<div class="avatar-edit-overlay" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); height: 16px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>`;
+      if (acc && acc.avatar_id && window.AVATARS) {
+        const av = window.AVATARS.find(a => a.id === acc.avatar_id);
+        if (av) {
+          avatarContainer.style.backgroundColor = av.bg_color;
+          avatarContainer.innerHTML = `<img src="../assets/avatars/${av.storage_path}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" alt="${av.display_name}">` + editOverlayHtml;
+        }
+      } else {
+        avatarContainer.style.backgroundColor = '';
+        avatarContainer.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>` + editOverlayHtml;
+      }
+    }
+
     // Initialize the tab position on screen open
     setTimeout(() => switchSettingsTab('general'), 10);
   }
+
+  if (name === 'main' || name === 'settings') {
+    const acc = (state.saved_accounts || []).find(a => a.email === state.auth?.email);
+    const homeAvatar = $('home-avatar');
+    const popoverAvatar = $('popover-avatar');
+    
+    if (homeAvatar && popoverAvatar) {
+      if (acc && acc.avatar_id && window.AVATARS) {
+        const av = window.AVATARS.find(a => a.id === acc.avatar_id);
+        if (av) {
+          const imgHtml = `<img src="../assets/avatars/${av.storage_path}" style="width: 100%; height: 100%; object-fit: cover;" alt="${av.display_name}">`;
+          homeAvatar.innerHTML = imgHtml;
+          homeAvatar.style.backgroundColor = av.bg_color;
+          popoverAvatar.innerHTML = imgHtml;
+          popoverAvatar.style.backgroundColor = av.bg_color;
+        }
+      } else {
+        const defaultSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+        homeAvatar.innerHTML = defaultSvg;
+        homeAvatar.style.backgroundColor = '';
+        popoverAvatar.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+        popoverAvatar.style.backgroundColor = '';
+      }
+    }
+    
+    const popName = $('popover-name');
+    const popEmail = $('popover-email');
+    if (popName && popEmail) {
+      popName.textContent = acc?.name || state.auth?.email || 'حسابي';
+      popEmail.textContent = state.auth?.email || '';
+    }
+  }
+}
+
+function initAvatarPicker() {
+  const container = document.getElementById('avatar-picker-list');
+  if (!container || !window.AVATARS) return;
+  
+  container.innerHTML = '';
+  
+  window.AVATARS.forEach((avatar, index) => {
+    const el = document.createElement('div');
+    el.className = 'avatar-item';
+    el.dataset.id = avatar.id;
+    el.title = avatar.display_name;
+    el.style.backgroundColor = avatar.bg_color;
+    
+    // Select the first one by default
+    if (index === 0) {
+      el.classList.add('selected');
+      window.selectedAvatarId = avatar.id;
+    }
+    
+    const img = document.createElement('img');
+    img.src = `../assets/avatars/${avatar.storage_path}`;
+    img.alt = avatar.display_name;
+    
+    el.appendChild(img);
+    
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.avatar-item').forEach(a => a.classList.remove('selected'));
+      el.classList.add('selected');
+      window.selectedAvatarId = avatar.id;
+    });
+    
+    container.appendChild(el);
+  });
+}
+
+function initSettingsAvatarPicker() {
+  const container = document.getElementById('settings-avatar-picker-list');
+  if (!container || !window.AVATARS) return;
+  
+  container.innerHTML = '';
+  
+  window.AVATARS.forEach((avatar, index) => {
+    const el = document.createElement('div');
+    el.className = 'avatar-item';
+    el.dataset.id = avatar.id;
+    el.title = avatar.display_name;
+    el.style.backgroundColor = avatar.bg_color;
+    
+    const img = document.createElement('img');
+    img.src = `../assets/avatars/${avatar.storage_path}`;
+    img.alt = avatar.display_name;
+    el.appendChild(img);
+    
+    el.addEventListener('click', () => {
+      container.querySelectorAll('.avatar-item').forEach(a => a.classList.remove('selected'));
+      el.classList.add('selected');
+      window.settingsSelectedAvatarId = avatar.id;
+    });
+    
+    container.appendChild(el);
+  });
 }
 
 // ==================== Event Listeners ====================
 function setupEventListeners() {
+  const showAddAccountBtn = $('show-add-account-btn');
+  const backToAccountsBtn = $('back-to-accounts-btn');
+  const loginFormContainer = $('login-form-container');
+  const savedAccountsSection = $('saved-accounts-section');
+
+  if (showAddAccountBtn && loginFormContainer && savedAccountsSection) {
+    showAddAccountBtn.addEventListener('click', () => {
+      savedAccountsSection.classList.add('hidden');
+      loginFormContainer.classList.remove('hidden');
+    });
+  }
+
+  if (backToAccountsBtn && loginFormContainer && savedAccountsSection) {
+    backToAccountsBtn.addEventListener('click', () => {
+      loginFormContainer.classList.add('hidden');
+      savedAccountsSection.classList.remove('hidden');
+    });
+  }
+
+  // Account Popover Logic
+  const homeAvatarBtn = $('home-avatar');
+  const accountPopover = $('account-popover');
+  if (homeAvatarBtn && accountPopover) {
+    homeAvatarBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      accountPopover.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!accountPopover.contains(e.target) && e.target !== homeAvatarBtn && !homeAvatarBtn.contains(e.target)) {
+        accountPopover.classList.add('hidden');
+      }
+    });
+
+    const popoverSettingsBtn = $('popover-settings-btn');
+    if (popoverSettingsBtn) {
+      popoverSettingsBtn.addEventListener('click', () => {
+        accountPopover.classList.add('hidden');
+        showScreen('settings');
+      });
+    }
+
+    const popoverSwitchBtn = $('popover-switch-btn');
+    if (popoverSwitchBtn) {
+      popoverSwitchBtn.addEventListener('click', () => {
+        accountPopover.classList.add('hidden');
+        handleLogout();
+      });
+    }
+  }
+
+  const saveAccountCheckbox = $('save-account-checkbox');
+  const accountNameGroup = $('account-name-group');
+  const avatarPickerGroup = $('avatar-picker-group');
+  if (saveAccountCheckbox && accountNameGroup && avatarPickerGroup) {
+    saveAccountCheckbox.addEventListener('change', (e) => {
+      accountNameGroup.style.display = e.target.checked ? 'flex' : 'none';
+      avatarPickerGroup.style.display = e.target.checked ? 'flex' : 'none';
+    });
+    accountNameGroup.style.display = saveAccountCheckbox.checked ? 'flex' : 'none';
+    avatarPickerGroup.style.display = saveAccountCheckbox.checked ? 'flex' : 'none';
+  }
+
+
+  // Change Avatar in Settings Logic
+  const settingsAvatar = $('settings-avatar');
+  const changeAvatarModal = $('change-avatar-modal');
+  const closeAvatarModalBtn = $('close-avatar-modal-btn');
+  const saveAvatarBtn = $('save-avatar-btn');
+
+  if (settingsAvatar && changeAvatarModal) {
+    settingsAvatar.addEventListener('click', async () => {
+      changeAvatarModal.classList.remove('hidden');
+      
+      const { saved_accounts } = await chrome.storage.local.get(['saved_accounts']);
+      const accounts = saved_accounts || [];
+      const acc = accounts.find(a => a.email === state.auth?.email);
+      let currentAvatarId = acc?.avatar_id;
+      
+      const container = $('settings-avatar-picker-list');
+      container.querySelectorAll('.avatar-item').forEach(el => {
+        el.classList.remove('selected');
+        if (el.dataset.id === currentAvatarId) {
+          el.classList.add('selected');
+          setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }, 50);
+        }
+      });
+      window.settingsSelectedAvatarId = currentAvatarId;
+    });
+  }
+
+  if (closeAvatarModalBtn && changeAvatarModal) {
+    closeAvatarModalBtn.addEventListener('click', () => {
+      changeAvatarModal.classList.add('hidden');
+    });
+  }
+
+  if (saveAvatarBtn) {
+    saveAvatarBtn.addEventListener('click', async () => {
+      if (window.settingsSelectedAvatarId && state.auth?.email) {
+        const { saved_accounts } = await chrome.storage.local.get(['saved_accounts']);
+        let accounts = saved_accounts || [];
+        const index = accounts.findIndex(a => a.email === state.auth.email);
+        if (index !== -1) {
+          accounts[index].avatar_id = window.settingsSelectedAvatarId;
+          await chrome.storage.local.set({ saved_accounts: accounts });
+          state.saved_accounts = accounts;
+          showScreen('settings');
+        }
+      }
+      changeAvatarModal.classList.add('hidden');
+    });
+  }
+
+  const loginLangBtn = $('login-lang-btn');
+  if (loginLangBtn) {
+    loginLangBtn.addEventListener('click', () => {
+      const newLang = state.language === 'ar' ? 'en' : 'ar';
+      state.language = newLang;
+      chrome.storage.local.set({ language: newLang });
+      applyI18N(newLang);
+      if ($('setting-language')) $('setting-language').value = newLang;
+    });
+  }
+
   $('login-btn').addEventListener('click', handleLogin);
   $('password-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleLogin();
@@ -1069,6 +1556,9 @@ function setupEventListeners() {
   }
 
   $('logout-btn').addEventListener('click', handleLogout);
+  if ($('switch-account-btn')) {
+    $('switch-account-btn').addEventListener('click', handleLogout);
+  }
 
   $('setting-autosave').addEventListener('change', (e) => {
     state.autoSave = e.target.checked;
@@ -1204,6 +1694,8 @@ function updateLibrarySortUI() {
 async function handleLogin() {
   const email = $('email-input').value.trim();
   const password = $('password-input').value;
+  const saveAccount = $('save-account-checkbox').checked;
+  const accountName = $('account-name-input').value.trim();
 
   if (!email || !password) {
     showLoginError(I18N[state.language || 'ar'].msg_enter_credentials);
@@ -1215,9 +1707,29 @@ async function handleLogin() {
   try {
     const authResult = await StremioAPI.login(email, password);
     if (authResult) {
+      if (saveAccount) {
+        const { saved_accounts } = await chrome.storage.local.get(['saved_accounts']);
+        let accounts = saved_accounts || [];
+        
+        // Remove existing account with same email if present
+        accounts = accounts.filter(acc => acc.email !== authResult.email);
+        
+        accounts.push({
+          email: authResult.email,
+          name: accountName,
+          auth: authResult,
+          avatar_id: window.selectedAvatarId || null
+        });
+        
+        await chrome.storage.local.set({ saved_accounts: accounts });
+        // Update local state copy so settings screen can find it
+        state.saved_accounts = accounts;
+      }
+
       state.auth = authResult;
       await chrome.storage.local.set({ stremio_auth: authResult });
       showScreen('main');
+      setTimeout(() => switchTab(state.currentTab || 'movies'), 50);
       await loadLibrary();
     } else {
       showLoginError(I18N[state.language || 'ar'].msg_invalid_credentials);
@@ -1251,7 +1763,14 @@ async function handleLogout() {
   await chrome.storage.local.remove(['stremio_auth', 'library_cache']);
   state.auth = null;
   state.library = { movies: [], series: [], continue: [] };
+
+  // Reset addon manager so next account loads fresh
+  AddonManager.reset();
+
+  const { saved_accounts } = await chrome.storage.local.get(['saved_accounts']);
   showScreen('login');
+  renderSavedAccounts(saved_accounts || []);
+
   showToast(I18N[state.language || 'ar'].msg_logged_out, 'info');
 }
 
@@ -2584,3 +3103,590 @@ function updateBackBtnIcon() {
     btn.removeAttribute('style');
   }
 }
+
+// ==================== Addon Manager ====================
+
+const AddonManager = {
+  _addons: [],         // working copy (may have unsaved changes)
+  _hasChanges: false,  // track whether sync is needed
+  _editingAddonIdx: -1, // index of addon being edited in catalog modal
+  _catalogEdits: [],   // working copy of catalogs during edit
+
+  t(key) {
+    return I18N[state.language || 'ar'][key] || key;
+  },
+
+  // Fetch addons from Stremio API
+  async fetchAddons() {
+    if (!state.auth?.authKey) return [];
+    const data = await StremioAPI.getAddons(state.auth.authKey);
+    this._addons = JSON.parse(JSON.stringify(data)); // deep clone
+    this._hasChanges = false;
+    this._updateSyncBtn();
+    return this._addons;
+  },
+
+  // Save addons to Stremio API
+  async saveAddons(addons) {
+    if (!state.auth?.authKey) throw new Error('Not logged in');
+    const res = await fetch('https://api.strem.io/api/addonCollectionSet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({ authKey: state.auth.authKey, addons })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+    return true;
+  },
+
+  // Fetch manifest from a URL and install
+  async installAddon(manifestUrl) {
+    const url = manifestUrl.trim();
+    if (!url) throw new Error(this.t('addon_err_no_url'));
+    let manifest;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      manifest = data;
+    } catch (e) {
+      throw new Error(this.t('addon_err_fetch'));
+    }
+    if (!manifest || !manifest.id) throw new Error(this.t('addon_err_fetch'));
+    // Check if already installed
+    const exists = this._addons.some(a => a.manifest?.id === manifest.id || a.transportUrl === url);
+    if (exists) {
+      throw new Error(state.language === 'ar' ? 'الإضافة مثبتة مسبقاً' : 'Addon already installed');
+    }
+    const newAddon = {
+      manifest,
+      transportUrl: url,
+      flags: {}
+    };
+    this._addons = [...this._addons, newAddon];
+    this._hasChanges = true;
+    this._updateSyncBtn();
+    return manifest;
+  },
+
+  // Remove addon (if not protected)
+  removeAddon(idx) {
+    const addon = this._addons[idx];
+    if (!addon) return;
+    if (addon.flags?.protected || addon.flags?.official) {
+      throw new Error(state.language === 'ar' ? 'لا يمكن حذف إضافة محمية' : 'Cannot remove protected addon');
+    }
+    this._addons.splice(idx, 1);
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Reorder addons
+  reorder(fromIdx, toIdx) {
+    if (fromIdx === toIdx) return;
+    const arr = [...this._addons];
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    this._addons = arr;
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Save catalog edits to a specific addon
+  saveCatalogEdits(addonIdx, catalogEdits) {
+    const addon = this._addons[addonIdx];
+    if (!addon || !addon.manifest) return;
+    addon.manifest.catalogs = catalogEdits.map(edit => ({
+      ...edit.original,
+      name: edit.name,
+      id: edit.original.id,
+      extra: edit.original.extra || [],
+      // Store hidden flag as behaviorHints
+      behaviorHints: { ...edit.original.behaviorHints, notWebReady: !edit.visible }
+    }));
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Export backup JSON
+  async backup() {
+    if (!state.auth?.authKey) return;
+    const data = await StremioAPI.getAddons(state.auth.authKey);
+    const blob = new Blob([JSON.stringify({ addons: data, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stremio-addons-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
+
+  // Auto-backup (silent, no prompt)
+  async silentBackup() {
+    try {
+      if (!state.auth?.authKey) return;
+      const data = await StremioAPI.getAddons(state.auth.authKey);
+      await chrome.storage.local.set({ addon_backup_auto: { addons: data, savedAt: new Date().toISOString() } });
+    } catch (e) { /* silent */ }
+  },
+
+  // Restore from JSON data
+  async restore(addons) {
+    this._addons = JSON.parse(JSON.stringify(addons));
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Sync to Stremio
+  async sync() {
+    await this.saveAddons(this._addons);
+    this._hasChanges = false;
+    this._updateSyncBtn();
+    // update state.addons
+    state.addons = [...this._addons];
+  },
+
+  _updateSyncBtn() {
+    const btn = $('addon-sync-btn');
+    if (!btn) return;
+    if (this._hasChanges) {
+      btn.classList.add('has-changes');
+    } else {
+      btn.classList.remove('has-changes');
+    }
+  },
+
+  // Reset all state (call on logout / account switch)
+  reset() {
+    this._addons = [];
+    this._hasChanges = false;
+    this._editingAddonIdx = -1;
+    this._catalogEdits = [];
+    this._updateSyncBtn();
+    // Clear the rendered list
+    const list = $('addons-list');
+    if (list) list.innerHTML = '';
+  },
+
+  // Show a "backup recommended" dialog before destructive actions
+  // Returns a promise that resolves when user picks an option
+  showBackupPrompt() {
+    return new Promise((resolve) => {
+      const lang = state.language || 'ar';
+      const msg = lang === 'ar'
+        ? 'يُنصح بعمل نسخة احتياطية قبل هذا التعديل. هل تريد تصدير نسخة احتياطية أولاً؟'
+        : 'It is recommended to backup before this change. Export a backup first?';
+      const btnBackup = lang === 'ar' ? 'نسخ احتياطي وتابع' : 'Backup & Continue';
+      const btnSkip   = lang === 'ar' ? 'تابع بدون نسخ' : 'Continue without backup';
+
+      // Create modal
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      overlay.innerHTML = `
+        <div style="background:rgba(20,18,36,0.98);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:24px;max-width:320px;width:90%;box-shadow:0 24px 48px rgba(0,0,0,0.8);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span style="font-size:14px;font-weight:700;color:white;">${lang === 'ar' ? 'تحذير' : 'Warning'}</span>
+          </div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:20px;">${msg}</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button id="bp-backup-btn" style="padding:10px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);border-radius:8px;color:#a78bfa;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">${btnBackup}</button>
+            <button id="bp-skip-btn" style="padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.5);font-family:inherit;font-size:13px;cursor:pointer;">${btnSkip}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      overlay.querySelector('#bp-backup-btn').addEventListener('click', async () => {
+        overlay.remove();
+        await this.backup();
+        resolve('backup');
+      });
+      overlay.querySelector('#bp-skip-btn').addEventListener('click', () => {
+        overlay.remove();
+        resolve('skip');
+      });
+    });
+  }
+};
+
+// ==================== Addon Manager UI ====================
+
+function renderAddonsList() {
+  const container = $('addons-list');
+  const loading = $('addon-loading');
+  if (!container) return;
+
+  if (!AddonManager._addons || AddonManager._addons.length === 0) {
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">${state.language === 'ar' ? 'لا توجد إضافات' : 'No addons found'}</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  let dragSrcIdx = null;
+
+  AddonManager._addons.forEach((addon, idx) => {
+    const manifest = addon.manifest || {};
+    const isProtected = addon.flags?.protected || addon.flags?.official || false;
+    const name = manifest.name || manifest.id || 'Unknown Addon';
+    const version = manifest.version ? `v${manifest.version}` : '';
+    const logoUrl = manifest.logo || null;
+
+    const card = document.createElement('div');
+    card.className = 'addon-card';
+    card.draggable = true;
+    card.dataset.idx = idx;
+
+    const iconHtml = logoUrl
+      ? `<div class="addon-icon-wrapper"><img src="${logoUrl}" alt="" onerror="this.parentElement.innerHTML='🧩'"></div>`
+      : `<div class="addon-icon-placeholder">🧩</div>`;
+
+    const lang = state.language || 'ar';
+    const editLabel  = lang === 'ar' ? 'تعديل' : 'Edit';
+    const removeLabel = lang === 'ar' ? 'حذف' : 'Remove';
+    const protectedLabel = lang === 'ar' ? 'محمية' : 'Protected';
+
+    card.innerHTML = `
+      <div class="addon-drag-handle" title="${lang === 'ar' ? 'اسحب لإعادة الترتيب' : 'Drag to reorder'}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+      </div>
+      ${iconHtml}
+      <div class="addon-card-info">
+        <div class="addon-card-name">${escapeHTML(name)}</div>
+        ${version ? `<div class="addon-card-version">${version}</div>` : ''}
+        ${isProtected ? `<div class="addon-card-protected">🔒 ${protectedLabel}</div>` : ''}
+      </div>
+      <div class="addon-card-actions">
+        <button class="addon-card-btn edit-btn">${editLabel}</button>
+        ${!isProtected ? `<button class="addon-card-btn remove-btn" ${isProtected ? 'disabled' : ''}>${removeLabel}</button>` : ''}
+      </div>
+    `;
+
+    // Edit catalogs
+    card.querySelector('.edit-btn').addEventListener('click', () => openCatalogModal(idx));
+
+    // Remove
+    const removeBtn = card.querySelector('.remove-btn');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', async () => {
+        await AddonManager.showBackupPrompt();
+        try {
+          AddonManager.removeAddon(idx);
+          showToast(AddonManager.t('addon_remove_ok'), 'info');
+          renderAddonsList();
+        } catch (e) {
+          showToast(e.message, 'error');
+        }
+      });
+    }
+
+    // Drag & Drop
+    card.addEventListener('dragstart', (e) => {
+      dragSrcIdx = idx;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const toIdx = parseInt(card.dataset.idx, 10);
+      if (dragSrcIdx !== null && dragSrcIdx !== toIdx) {
+        AddonManager.reorder(dragSrcIdx, toIdx);
+        renderAddonsList();
+      }
+      dragSrcIdx = null;
+    });
+
+    container.appendChild(card);
+  });
+}
+
+function openCatalogModal(addonIdx) {
+  const modal = $('catalog-edit-modal');
+  if (!modal) return;
+  const addon = AddonManager._addons[addonIdx];
+  if (!addon) return;
+
+  AddonManager._editingAddonIdx = addonIdx;
+  const manifest = addon.manifest || {};
+  const catalogs = manifest.catalogs || [];
+
+  $('catalog-modal-addon-name').textContent = manifest.name || 'Addon';
+
+  // Build working copy
+  AddonManager._catalogEdits = catalogs.map(cat => ({
+    original: cat,
+    name: cat.name || cat.id,
+    visible: !(cat.behaviorHints?.notWebReady)
+  }));
+
+  renderCatalogEditList();
+  modal.classList.remove('hidden');
+}
+
+function renderCatalogEditList() {
+  const list = $('catalog-edit-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (!AddonManager._catalogEdits || AddonManager._catalogEdits.length === 0) {
+    list.innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">${state.language === 'ar' ? 'لا توجد كتالوجات' : 'No catalogs'}</div>`;
+    return;
+  }
+
+  let dragSrcCatIdx = null;
+
+  AddonManager._catalogEdits.forEach((edit, idx) => {
+    const item = document.createElement('div');
+    item.className = 'catalog-edit-item';
+    item.draggable = true;
+    item.dataset.idx = idx;
+
+    const typeLabel = edit.original.type || '';
+    const isVisible = edit.visible;
+    const eyeTitle  = state.language === 'ar' ? (isVisible ? 'إخفاء من الرئيسية' : 'إظهار في الرئيسية') : (isVisible ? 'Hide from home' : 'Show on home');
+
+    item.innerHTML = `
+      <div class="catalog-drag-handle">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+      </div>
+      <input type="text" class="catalog-name-input" value="${escapeHTML(edit.name)}" placeholder="Catalog name">
+      ${typeLabel ? `<span class="catalog-type-badge">${typeLabel}</span>` : ''}
+      <button class="catalog-eye-btn${isVisible ? ' visible' : ''}" title="${eyeTitle}">
+        ${isVisible
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+        }
+      </button>
+    `;
+
+    // Update edit on name change
+    const nameInput = item.querySelector('.catalog-name-input');
+    nameInput.addEventListener('input', () => {
+      AddonManager._catalogEdits[idx].name = nameInput.value;
+    });
+
+    // Toggle visibility
+    const eyeBtn = item.querySelector('.catalog-eye-btn');
+    eyeBtn.addEventListener('click', () => {
+      AddonManager._catalogEdits[idx].visible = !AddonManager._catalogEdits[idx].visible;
+      renderCatalogEditList();
+    });
+
+    // Catalog drag & drop
+    item.addEventListener('dragstart', (e) => {
+      dragSrcCatIdx = idx;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const toIdx = parseInt(item.dataset.idx, 10);
+      if (dragSrcCatIdx !== null && dragSrcCatIdx !== toIdx) {
+        const edits = [...AddonManager._catalogEdits];
+        const [moved] = edits.splice(dragSrcCatIdx, 1);
+        edits.splice(toIdx, 0, moved);
+        AddonManager._catalogEdits = edits;
+        renderCatalogEditList();
+      }
+      dragSrcCatIdx = null;
+    });
+
+    list.appendChild(item);
+  });
+}
+
+// ==================== Addon Manager Event Setup ====================
+
+async function loadAndRenderAddons() {
+  const loading = $('addon-loading');
+  if (loading) loading.classList.remove('hidden');
+  try {
+    await AddonManager.fetchAddons();
+    renderAddonsList();
+  } catch (e) {
+    showToast(e.message || AddonManager.t('addon_err_fetch'), 'error');
+  } finally {
+    if (loading) loading.classList.add('hidden');
+  }
+}
+
+function setupAddonManagerListeners() {
+  // Always reload addons fresh when tab is clicked
+  const addonsTabBtn = document.querySelector('[data-settings-tab="addons"]');
+  if (addonsTabBtn) {
+    addonsTabBtn.addEventListener('click', () => loadAndRenderAddons());
+  }
+
+  // Refresh button — force re-fetch from server
+  const refreshBtn = $('addon-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('rotating');
+      try {
+        await loadAndRenderAddons();
+        showToast(state.language === 'ar' ? 'تم تحديث الإضافات' : 'Addons refreshed', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('rotating');
+      }
+    });
+  }
+
+  // Backup button
+  const backupBtn = $('addon-backup-btn');
+  if (backupBtn) {
+    backupBtn.addEventListener('click', async () => {
+      backupBtn.disabled = true;
+      try {
+        await AddonManager.backup();
+        showToast(state.language === 'ar' ? 'تم تصدير النسخة الاحتياطية' : 'Backup exported', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        backupBtn.disabled = false;
+      }
+    });
+  }
+
+  // Restore from file
+  const restoreInput = $('addon-restore-input');
+  if (restoreInput) {
+    restoreInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      // Prompt backup before restore
+      await AddonManager.showBackupPrompt();
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const addons = parsed.addons || parsed;
+        if (!Array.isArray(addons)) throw new Error(state.language === 'ar' ? 'ملف غير صالح' : 'Invalid file');
+        await AddonManager.restore(addons);
+        renderAddonsList();
+        showToast(AddonManager.t('addon_restore_ok'), 'success');
+      } catch (e) {
+        showToast(e.message || AddonManager.t('addon_err_save'), 'error');
+      }
+      restoreInput.value = '';
+    });
+  }
+
+  // Install addon
+  const installBtn = $('addon-install-btn');
+  const installUrl = $('addon-install-url');
+  const installStatus = $('addon-install-status');
+  if (installBtn && installUrl) {
+    installBtn.addEventListener('click', async () => {
+      const url = installUrl.value.trim();
+      if (!url) {
+        if (installStatus) {
+          installStatus.textContent = AddonManager.t('addon_err_no_url');
+          installStatus.className = 'addon-status-msg error';
+          installStatus.classList.remove('hidden');
+        }
+        return;
+      }
+      // Prompt backup
+      await AddonManager.showBackupPrompt();
+      installBtn.disabled = true;
+      if (installStatus) installStatus.classList.add('hidden');
+      try {
+        const manifest = await AddonManager.installAddon(url);
+        installUrl.value = '';
+        renderAddonsList();
+        if (installStatus) {
+          installStatus.textContent = AddonManager.t('addon_install_ok');
+          installStatus.className = 'addon-status-msg success';
+          installStatus.classList.remove('hidden');
+        }
+        showToast(AddonManager.t('addon_install_ok'), 'success');
+      } catch (e) {
+        if (installStatus) {
+          installStatus.textContent = e.message;
+          installStatus.className = 'addon-status-msg error';
+          installStatus.classList.remove('hidden');
+        }
+        showToast(e.message, 'error');
+      } finally {
+        installBtn.disabled = false;
+      }
+    });
+  }
+
+  // Sync button
+  const syncBtn = $('addon-sync-btn');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', async () => {
+      if (!AddonManager._hasChanges) {
+        showToast(state.language === 'ar' ? 'لا يوجد تغييرات للمزامنة' : 'No changes to sync', 'info');
+        return;
+      }
+      syncBtn.classList.add('rotating');
+      syncBtn.disabled = true;
+      try {
+        await AddonManager.sync();
+        showToast(AddonManager.t('addon_sync_ok'), 'success');
+      } catch (e) {
+        showToast(e.message || AddonManager.t('addon_err_save'), 'error');
+      } finally {
+        syncBtn.classList.remove('rotating');
+        syncBtn.disabled = false;
+      }
+    });
+  }
+
+  // Catalog Edit Modal — close
+  const closeCatalogModal = () => {
+    const modal = $('catalog-edit-modal');
+    if (modal) modal.classList.add('hidden');
+    AddonManager._editingAddonIdx = -1;
+    AddonManager._catalogEdits = [];
+  };
+  const closeBtn1 = $('close-catalog-modal');
+  const closeBtn2 = $('close-catalog-modal-2');
+  if (closeBtn1) closeBtn1.addEventListener('click', closeCatalogModal);
+  if (closeBtn2) closeBtn2.addEventListener('click', closeCatalogModal);
+
+  // Catalog Edit Modal — save
+  const saveCatalogBtn = $('save-catalog-btn');
+  if (saveCatalogBtn) {
+    saveCatalogBtn.addEventListener('click', async () => {
+      // Auto silent backup before saving catalog changes
+      await AddonManager.silentBackup();
+      const idx = AddonManager._editingAddonIdx;
+      if (idx === -1) return;
+      try {
+        AddonManager.saveCatalogEdits(idx, AddonManager._catalogEdits);
+        closeCatalogModal();
+        renderAddonsList();
+        showToast(AddonManager.t('addon_catalog_save_ok'), 'success');
+      } catch (e) {
+        showToast(e.message || AddonManager.t('addon_err_save'), 'error');
+      }
+    });
+  }
+}
+

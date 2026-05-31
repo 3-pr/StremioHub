@@ -5,11 +5,14 @@
   <p>
     <a href="#features">Features</a> •
     <a href="#installation-developer-mode">Installation</a> •
-    <a href="#chrome-extension-coming-soon">Chrome Web Store</a>
+    <a href="#chrome-web-store">Chrome Web Store</a>
   </p>
   <p>
     <a href="README_AR.md">🇸🇦 Read in Arabic (اقرأ بالعربية)</a>
   </p>
+  <img src="https://img.shields.io/badge/version-1.3.0-8b5cf6?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/chrome-MV3-4285F4?style=flat-square&logo=googlechrome" alt="Chrome MV3">
+  <img src="https://img.shields.io/badge/firefox-MV3-FF7139?style=flat-square&logo=firefox" alt="Firefox MV3">
 </div>
 <div align="center">
   <a href='https://ko-fi.com/V8P5206X9H' target='_blank'>
@@ -28,10 +31,28 @@
 - **🌐 Cross-Site Integration**: Adds smart "Save to Library" and "Open in Stremio" buttons directly on your favorite movie discovery websites.
 - **🖱️ Right-Click Quick Search**: Highlight any movie or show name, right-click, and instantly search for it in Stremio.
 - **📚 Full Library Management**: View, filter, sort, and mark items as watched (Movies, Series, and Continue Watching) natively in your browser popup.
+- **🧩 Addon Manager** *(New in v1.3.0)*: Install, remove, reorder, and manage your Stremio addons — with per-addon catalog editing — all from the extension.
 - **🎨 Glassmorphism UI**: A breathtaking, premium Apple-inspired dark mode design with buttery smooth micro-animations.
 - **🔗 Smart Add-on Support**: Dynamically fetches descriptions and metadata from your actual Stremio add-ons (like TMDB) to provide rich, localized context.
 - **🌍 Bilingual Support**: Fully supports Arabic & English with native right-to-left (RTL) alignments and live toggling.
 - **🛠 Highly Customizable**: Choose between floating pop-up cards or full-screen immersive details views, adjust popup sizes, and more!
+
+## 🧩 Addon Manager — v1.3.0
+
+A full addon management panel is now built directly into the extension settings. No need to open Stremio's website to manage your addons.
+
+| Feature | Description |
+|---|---|
+| 📋 **View installed addons** | See all your Stremio addons with logos, names, and descriptions |
+| ➕ **Install by URL** | Paste a `manifest.json` link to install any addon instantly |
+| 🗑️ **Remove addons** | Delete addons with a safety backup prompt before every change |
+| ↕️ **Drag & Drop reorder** | Rearrange your addon priority with drag and drop |
+| 🗂️ **Edit catalogs** | Rename or hide individual catalogs per addon |
+| 🔄 **Sync to Stremio** | Push all changes to your Stremio account with one tap |
+| ♻️ **Refresh button** | Reload your addon list from the server at any time |
+| 💾 **Backup & Restore** | Export your addon config as JSON and restore it anytime |
+| 🔐 **Auto silent backup** | Automatic silent backup before catalog edits |
+| 🔁 **Account-aware** | Addon list resets automatically when switching accounts |
 
 <details>
 <summary><b>🎬 Feature Demonstrations</b></summary>
@@ -51,10 +72,9 @@ Easily mark episodes or movies as watched directly from the popup.
 
 </details>
 
-## 🚀 Chrome Extension (Coming Soon)
+## 🚀 Chrome Web Store
 
-We are currently preparing StremioHub for an official release on the Chrome Web Store. 
-Soon, you will be able to install it with a single click and receive automatic updates! Stay tuned. ⏳
+> The extension is currently under review for the Chrome Web Store. Stay tuned for a one-click install! ⏳
 
 ## 🛠 Installation (Developer Mode)
 
@@ -70,6 +90,9 @@ Until the official store release, you can install StremioHub locally:
 4. Click on **Load unpacked** and select the `extension` folder inside the `StremioHub` folder you extracted.
 5. Pin the extension to your toolbar, log in with your Stremio account, and enjoy!
 
+### Firefox
+Follow the same steps but load the `extension-firefox` folder at `about:debugging#/runtime/this-firefox`.
+
 ## 🔐 Privacy & Security
 
 - **No Passwords Stored**: Your Stremio credentials are used once to fetch an `authKey`.
@@ -79,6 +102,23 @@ Until the official store release, you can install StremioHub locally:
 ## ⚠️ Disclaimer
 
 **StremioHub is an unofficial, community-built extension.** It is not affiliated with, endorsed by, or officially connected to the Stremio team.
+
+## 📋 Changelog
+
+### v1.3.0 — Addon Manager
+- ✅ Full addon management panel (install, remove, reorder, sync)
+- ✅ Per-addon catalog editing (rename, hide/show catalogs)
+- ✅ Drag & drop addon reordering
+- ✅ Backup & restore addon configuration as JSON
+- ✅ Auto silent backup before destructive actions
+- ✅ Manual refresh button to reload addons from server
+- ✅ Account-aware: addon list resets on account switch
+- ✅ Full Arabic & English localization for all new UI
+- ✅ Ported to Firefox extension
+
+### v1.2.3
+- State persistence across popup sessions
+- Firefox port improvements
 
 <br>
 <div align="center">
