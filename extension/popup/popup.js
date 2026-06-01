@@ -1423,10 +1423,18 @@ function setupEventListeners() {
         const index = accounts.findIndex(a => a.email === state.auth.email);
         if (index !== -1) {
           accounts[index].avatar_id = window.settingsSelectedAvatarId;
-          await chrome.storage.local.set({ saved_accounts: accounts });
-          state.saved_accounts = accounts;
-          showScreen('settings');
+        } else {
+          // If account wasn't saved during login, save it now to store the avatar
+          accounts.push({
+            email: state.auth.email,
+            name: state.auth.email.split('@')[0],
+            auth: state.auth,
+            avatar_id: window.settingsSelectedAvatarId
+          });
         }
+        await chrome.storage.local.set({ saved_accounts: accounts });
+        state.saved_accounts = accounts;
+        showScreen('settings');
       }
       changeAvatarModal.classList.add('hidden');
     });
