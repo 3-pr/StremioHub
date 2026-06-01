@@ -135,29 +135,38 @@ const I18N = {
     choose_avatar: "اختر صورتك",
     cancel: "إلغاء",
     save_changes: "حفظ",
+
+    // Addon Manager
     tab_addons: "الإضافات",
     addon_warning: "هذا القسم يُعدّل إعدادات Stremio مباشرةً. يُنصح بعمل نسخة احتياطية قبل أي تعديل.",
     addon_backup_title: "النسخ الاحتياطي والاستعادة",
     addon_backup_desc: "احفظ إعدادات إضافاتك الحالية أو أعدها من ملف سابق.",
-    addon_backup_btn: "تصدير نسخة احتياطية",
-    addon_restore_btn: "استعادة من ملف",
+    addon_backup_btn: "تصدير نسخة",
+    addon_restore_btn: "استعادة",
     addon_install_title: "تثبيت إضافة جديدة",
     addon_install_desc: "أدخل رابط manifest.json للإضافة لتثبيتها في حسابك.",
     addon_install_btn: "تثبيت",
     addon_list_title: "الإضافات المثبتة",
-    addon_list_desc: "اسحب وأفلت لإعادة الترتيب. انقر \"تعديل\" للتحكم في الكتالوجات.",
+    addon_list_desc: "اسحب وأفلت لإعادة الترتيب. انقر تعديل للتحكم في الكتالوجات.",
     addon_sync_btn: "مزامنة",
-    addon_refresh_btn: "تحديث",
+    addon_protected: "محمية",
     addon_edit_btn: "تعديل",
     addon_remove_btn: "حذف",
-    addon_edit_catalogs_title: "تعديل كتالوجات",
-    addon_catalog_name: "الاسم",
+    catalog_modal_hint: "اسحب لإعادة الترتيب. عدّل الاسم أو أخفِ الكتالوج.",
+    addon_backup_prompt: "تم حفظ نسخة احتياطية تلقائياً. تابع بالتعديل.",
+    addon_backup_prompt_title: "هل تريد المتابعة?",
+    addon_backup_and_continue: "نسخ احتياطي وتابع",
+    addon_continue_anyway: "تابع بدون نسخ",
+    addon_install_ok: "تم تثبيت الإضافة ✓",
+    addon_remove_ok: "تم حذف الإضافة",
+    addon_restore_ok: "تم الاستعادة بنجاح ✓",
+    addon_sync_ok: "تمت المزامنة بنجاح ✓",
     addon_catalog_save_ok: "تم حفظ الكتالوجات ✓",
     addon_err_no_url: "أدخل رابط الإضافة",
     addon_err_fetch: "فشل جلب بيانات الإضافة",
-    addon_err_save: "حدث خطأ أثناء الحفظ"
+    addon_err_save: "حدث خطأ أثناء الحفظ",
+    addon_refresh_btn: "تحديث"
   },
-
   en: {
     app_title: "StremioHub",
     app_subtitle: "All-in-one",
@@ -294,30 +303,39 @@ const I18N = {
     choose_avatar: "Choose Avatar",
     cancel: "Cancel",
     save_changes: "Save",
-    tab_addons: "Addons",
-    addon_warning: "This section modifies Stremio settings directly. A backup is recommended before any change.",
+
+    // Addon Manager
+    tab_addons: "Add-ons",
+    addon_warning: "This section modifies Stremio settings directly. It's recommended to back up before any change.",
     addon_backup_title: "Backup & Restore",
     addon_backup_desc: "Save your current addon settings or restore from a previous file.",
     addon_backup_btn: "Export Backup",
-    addon_restore_btn: "Restore from File",
+    addon_restore_btn: "Restore",
     addon_install_title: "Install New Addon",
-    addon_install_desc: "Enter the addon manifest.json URL to install it in your account.",
+    addon_install_desc: "Enter a manifest.json URL to install an addon to your account.",
     addon_install_btn: "Install",
-    addon_list_title: "Installed Addons",
-    addon_list_desc: "Drag & drop to reorder. Click \"Edit\" to manage catalogs.",
+    addon_list_title: "Installed Add-ons",
+    addon_list_desc: "Drag & drop to reorder. Click Edit to manage catalogs.",
     addon_sync_btn: "Sync",
-    addon_refresh_btn: "Refresh",
+    addon_protected: "Protected",
     addon_edit_btn: "Edit",
     addon_remove_btn: "Remove",
-    addon_edit_catalogs_title: "Edit Catalogs",
-    addon_catalog_name: "Name",
-    addon_catalog_save_ok: "Catalogs saved \u2713",
+    catalog_modal_hint: "Drag to reorder. Edit names or hide catalogs from your home screen.",
+    addon_backup_prompt: "A backup was saved automatically. Continue with the change.",
+    addon_backup_prompt_title: "Want to continue?",
+    addon_backup_and_continue: "Backup & Continue",
+    addon_continue_anyway: "Continue without backup",
+    addon_install_ok: "Addon installed ✓",
+    addon_remove_ok: "Addon removed",
+    addon_restore_ok: "Restore successful ✓",
+    addon_sync_ok: "Synced successfully ✓",
+    addon_catalog_save_ok: "Catalogs saved ✓",
     addon_err_no_url: "Please enter an addon URL",
     addon_err_fetch: "Failed to fetch addon manifest",
-    addon_err_save: "Error saving changes"
+    addon_err_save: "Error saving changes",
+    addon_refresh_btn: "Refresh"
   }
 };
-
 
 function applyI18N(lang) {
   const t = I18N[lang] || I18N.ar;
@@ -1647,409 +1665,6 @@ function setupEventListeners() {
   });
 }
 
-// ==================== Addon Manager ====================
-const AddonManager = {
-  _addons: [],
-  _hasChanges: false,
-  _editingAddonIdx: -1,
-  _catalogEdits: [],
-
-  t(key) {
-    const lang = state.language || 'ar';
-    return (I18N[lang] && I18N[lang][key]) || key;
-  },
-
-  async fetchAddons() {
-    if (!state.auth?.authKey) throw new Error('Not logged in');
-    const addons = await StremioAPI.getAddons(state.auth.authKey);
-    this._addons = addons;
-    this._hasChanges = false;
-    this._updateSyncBtn();
-    return addons;
-  },
-
-  async saveAddons() {
-    if (!state.auth?.authKey) throw new Error('Not logged in');
-    const res = await fetch('https://api.strem.io/api/addonCollectionSet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-      body: JSON.stringify({ authKey: state.auth.authKey, addons: this._addons })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    this._hasChanges = false;
-    this._updateSyncBtn();
-    return data;
-  },
-
-  async installAddon(manifestUrl) {
-    if (!manifestUrl) throw new Error(this.t('addon_err_no_url'));
-    const url = manifestUrl.trim().replace(/\/manifest\.json$/, '') + '/manifest.json';
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(this.t('addon_err_fetch'));
-    const manifest = await res.json();
-    const transportUrl = url.replace('/manifest.json', '');
-    const newAddon = { manifest, transportUrl, flags: {} };
-    const exists = this._addons.some(a => (a.manifest?.id || a.transportUrl) === (manifest.id || transportUrl));
-    if (exists) throw new Error('الإضافة مثبتة بالفعل');
-    this._addons = [newAddon, ...this._addons];
-    this._hasChanges = true;
-    this._updateSyncBtn();
-    return manifest;
-  },
-
-  removeAddon(idx) {
-    this._addons.splice(idx, 1);
-    this._hasChanges = true;
-    this._updateSyncBtn();
-  },
-
-  reorder(fromIdx, toIdx) {
-    const item = this._addons.splice(fromIdx, 1)[0];
-    this._addons.splice(toIdx, 0, item);
-    this._hasChanges = true;
-    this._updateSyncBtn();
-  },
-
-  saveCatalogEdits(addonIdx, edits) {
-    const addon = this._addons[addonIdx];
-    if (!addon || !addon.manifest) return;
-    edits.forEach(e => {
-      const cat = addon.manifest.catalogs?.[e.index];
-      if (!cat) return;
-      if (e.name !== undefined) cat.name = e.name;
-      if (e.hidden !== undefined) {
-        if (!cat.extra) cat.extra = [];
-        if (e.hidden) {
-          if (!cat.extra.find(x => x.name === 'skip')) cat.extra.push({ name: 'skip', isRequired: false });
-        } else {
-          cat.extra = cat.extra.filter(x => x.name !== 'skip');
-        }
-      }
-    });
-    this._hasChanges = true;
-    this._updateSyncBtn();
-  },
-
-  async backup() {
-    const json = JSON.stringify({ addons: this._addons, exportedAt: new Date().toISOString() }, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `stremio-addons-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  },
-
-  async silentBackup() {
-    if (this._addons.length === 0) return;
-    const json = JSON.stringify({ addons: this._addons, exportedAt: new Date().toISOString() });
-    chrome.storage.local.set({ addon_last_backup: json });
-  },
-
-  async restore(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!Array.isArray(data.addons)) throw new Error('Invalid backup file');
-          this._addons = data.addons;
-          this._hasChanges = true;
-          this._updateSyncBtn();
-          resolve(data.addons.length);
-        } catch (err) { reject(err); }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    });
-  },
-
-  reset() {
-    this._addons = [];
-    this._hasChanges = false;
-    this._editingAddonIdx = -1;
-    this._catalogEdits = [];
-    this._updateSyncBtn();
-    const list = $('addons-list');
-    if (list) list.innerHTML = '';
-  },
-
-  _updateSyncBtn() {
-    const btn = $('addon-sync-btn');
-    if (!btn) return;
-    if (this._hasChanges) btn.classList.add('has-changes');
-    else btn.classList.remove('has-changes');
-  },
-
-  showBackupPrompt() {
-    return new Promise((resolve) => {
-      const lang = state.language || 'ar';
-      const msg = lang === 'ar'
-        ? 'يُنصح بعمل نسخة احتياطية قبل هذا التعديل. هل تريد تصدير نسخة احتياطية أولاً؟'
-        : 'It is recommended to backup before this change. Export a backup first?';
-      const btnBackup = lang === 'ar' ? 'نسخ احتياطي وتابع' : 'Backup & Continue';
-      const btnSkip   = lang === 'ar' ? 'تابع بدون نسخ' : 'Continue without backup';
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
-      overlay.innerHTML = `
-        <div style="background:#1e1b2e;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;max-width:320px;width:90%;">
-          <p style="margin:0 0 20px;color:#fff;font-size:14px;line-height:1.6;">${msg}</p>
-          <div style="display:flex;gap:10px;">
-            <button id="bp-backup" style="flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#7b5ea7,#9d7fd4);color:#fff;cursor:pointer;font-weight:600;font-size:13px;">${btnBackup}</button>
-            <button id="bp-skip" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:#aaa;cursor:pointer;font-size:13px;">${btnSkip}</button>
-          </div>
-        </div>`;
-      document.body.appendChild(overlay);
-      overlay.querySelector('#bp-backup').addEventListener('click', async () => {
-        overlay.remove();
-        await AddonManager.backup();
-        resolve(true);
-      });
-      overlay.querySelector('#bp-skip').addEventListener('click', () => {
-        overlay.remove();
-        resolve(true);
-      });
-    });
-  }
-};
-
-// ==================== Addon UI Rendering ====================
-function renderAddonsList() {
-  const container = $('addons-list');
-  if (!container) return;
-  if (AddonManager._addons.length === 0) {
-    container.innerHTML = `<p style="color:rgba(255,255,255,0.4);text-align:center;padding:24px 0;font-size:13px;">${AddonManager.t('addon_list_title')}: 0</p>`;
-    return;
-  }
-  container.innerHTML = '';
-  AddonManager._addons.forEach((addon, idx) => {
-    const m = addon.manifest || {};
-    const name = m.name || m.id || addon.transportUrl || 'Unknown';
-    const logo = m.logo || '';
-    const desc = m.description || '';
-    const catalogs = m.catalogs || [];
-    const card = document.createElement('div');
-    card.className = 'addon-card';
-    card.draggable = true;
-    card.dataset.idx = idx;
-    card.innerHTML = `
-      <div class="addon-drag-handle" title="سحب للترتيب">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
-      </div>
-      ${logo ? `<img class="addon-logo" src="${logo}" alt="" onerror="this.style.display='none'">` : '<div class="addon-logo-placeholder"></div>'}
-      <div class="addon-info">
-        <div class="addon-name" title="${name}">${name}</div>
-        <div class="addon-desc" title="${desc}">${desc || (catalogs.length + ' catalogs')}</div>
-      </div>
-      <div class="addon-actions">
-        ${catalogs.length > 0 ? `<button class="addon-edit-btn" data-idx="${idx}" title="${AddonManager.t('addon_edit_btn')}">${AddonManager.t('addon_edit_btn')}</button>` : ''}
-        <button class="addon-remove-btn" data-idx="${idx}" title="${AddonManager.t('addon_remove_btn')}">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>`;
-    // Drag & Drop
-    card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', idx); card.classList.add('dragging'); });
-    card.addEventListener('dragend', () => card.classList.remove('dragging'));
-    card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
-    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
-    card.addEventListener('drop', (e) => {
-      e.preventDefault();
-      card.classList.remove('drag-over');
-      const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
-      const toIdx = parseInt(card.dataset.idx);
-      if (fromIdx !== toIdx) { AddonManager.reorder(fromIdx, toIdx); renderAddonsList(); }
-    });
-    container.appendChild(card);
-  });
-  // Remove buttons
-  container.querySelectorAll('.addon-remove-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const idx = parseInt(e.currentTarget.dataset.idx);
-      await AddonManager.showBackupPrompt();
-      AddonManager.removeAddon(idx);
-      renderAddonsList();
-      showToast(state.language === 'ar' ? 'تم حذف الإضافة' : 'Addon removed', 'info');
-    });
-  });
-  // Edit catalog buttons
-  container.querySelectorAll('.addon-edit-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = parseInt(e.currentTarget.dataset.idx);
-      openCatalogModal(idx);
-    });
-  });
-}
-
-function openCatalogModal(addonIdx) {
-  AddonManager._editingAddonIdx = addonIdx;
-  AddonManager._catalogEdits = [];
-  const addon = AddonManager._addons[addonIdx];
-  const m = addon?.manifest || {};
-  const lang = state.language || 'ar';
-  const existing = $('catalog-edit-modal-ff');
-  if (existing) existing.remove();
-  const modal = document.createElement('div');
-  modal.id = 'catalog-edit-modal-ff';
-  modal.className = 'modal';
-  modal.innerHTML = `
-    <div class="modal-content" style="max-width:400px;padding:24px;">
-      <h3 style="margin:0 0 16px;font-size:16px;">${AddonManager.t('addon_edit_catalogs_title')}: ${m.name || ''}</h3>
-      <div id="catalog-edit-list-ff" style="max-height:300px;overflow-y:auto;"></div>
-      <div style="display:flex;gap:8px;margin-top:16px;">
-        <button id="catalog-save-btn-ff" class="btn-primary" style="flex:1;">${lang === 'ar' ? 'حفظ' : 'Save'}</button>
-        <button id="catalog-cancel-btn-ff" class="btn-secondary" style="flex:1;">${lang === 'ar' ? 'إلغاء' : 'Cancel'}</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  renderCatalogEditList(modal, m.catalogs || []);
-  modal.querySelector('#catalog-cancel-btn-ff').addEventListener('click', () => modal.remove());
-  modal.querySelector('#catalog-save-btn-ff').addEventListener('click', async () => {
-    await AddonManager.silentBackup();
-    const idx = AddonManager._editingAddonIdx;
-    if (idx === -1) return;
-    try {
-      AddonManager.saveCatalogEdits(idx, AddonManager._catalogEdits);
-      modal.remove();
-      renderAddonsList();
-      showToast(AddonManager.t('addon_catalog_save_ok'), 'success');
-    } catch (e) { showToast(e.message || AddonManager.t('addon_err_save'), 'error'); }
-  });
-}
-
-function renderCatalogEditList(modal, catalogs) {
-  const list = modal.querySelector('#catalog-edit-list-ff');
-  if (!list) return;
-  list.innerHTML = '';
-  catalogs.forEach((cat, ci) => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);';
-    const isHidden = Array.isArray(cat.extra) && cat.extra.some(x => x.name === 'skip');
-    row.innerHTML = `
-      <input type="text" value="${cat.name || ''}" data-ci="${ci}" class="addon-url-input" style="flex:1;padding:6px 8px;" placeholder="${AddonManager.t('addon_catalog_name')}">
-      <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:rgba(255,255,255,0.6);cursor:pointer;">
-        <input type="checkbox" ${isHidden ? 'checked' : ''} data-ci-hide="${ci}" style="cursor:pointer;"> إخفاء
-      </label>`;
-    row.querySelector('input[type="text"]').addEventListener('input', (e) => {
-      let ed = AddonManager._catalogEdits.find(x => x.index === ci);
-      if (!ed) { ed = { index: ci }; AddonManager._catalogEdits.push(ed); }
-      ed.name = e.target.value;
-    });
-    row.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
-      let ed = AddonManager._catalogEdits.find(x => x.index === ci);
-      if (!ed) { ed = { index: ci }; AddonManager._catalogEdits.push(ed); }
-      ed.hidden = e.target.checked;
-    });
-    list.appendChild(row);
-  });
-}
-
-async function loadAndRenderAddons() {
-  const loading = $('addon-loading');
-  if (loading) loading.classList.remove('hidden');
-  try {
-    await AddonManager.fetchAddons();
-    renderAddonsList();
-  } catch (e) {
-    showToast(e.message || AddonManager.t('addon_err_fetch'), 'error');
-  } finally {
-    if (loading) loading.classList.add('hidden');
-  }
-}
-
-function setupAddonManagerListeners() {
-  // Always reload fresh when tab is clicked
-  const addonsTabBtn = document.querySelector('[data-settings-tab="addons"]');
-  if (addonsTabBtn) {
-    addonsTabBtn.addEventListener('click', () => loadAndRenderAddons());
-  }
-
-  // Refresh button
-  const refreshBtn = $('addon-refresh-btn');
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', async () => {
-      refreshBtn.disabled = true;
-      refreshBtn.classList.add('rotating');
-      try {
-        await loadAndRenderAddons();
-        showToast(state.language === 'ar' ? 'تم تحديث الإضافات' : 'Addons refreshed', 'success');
-      } catch (e) { showToast(e.message, 'error'); }
-      finally { refreshBtn.disabled = false; refreshBtn.classList.remove('rotating'); }
-    });
-  }
-
-  // Backup button
-  const backupBtn = $('addon-backup-btn');
-  if (backupBtn) {
-    backupBtn.addEventListener('click', async () => {
-      backupBtn.disabled = true;
-      try {
-        await AddonManager.backup();
-        showToast(state.language === 'ar' ? 'تم تصدير النسخة الاحتياطية' : 'Backup exported', 'success');
-      } catch (e) { showToast(e.message, 'error'); }
-      finally { backupBtn.disabled = false; }
-    });
-  }
-
-  // Restore input
-  const restoreInput = $('addon-restore-input');
-  if (restoreInput) {
-    restoreInput.addEventListener('change', async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      await AddonManager.showBackupPrompt();
-      try {
-        const count = await AddonManager.restore(file);
-        renderAddonsList();
-        showToast(`${state.language === 'ar' ? 'تمت الاستعادة: ' : 'Restored: '}${count} addons`, 'success');
-      } catch (err) { showToast(err.message, 'error'); }
-      restoreInput.value = '';
-    });
-  }
-
-  // Install button
-  const installBtn = $('addon-install-btn');
-  if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-      const url = $('addon-install-url')?.value.trim();
-      const statusEl = $('addon-install-status');
-      if (!url) { showToast(AddonManager.t('addon_err_no_url'), 'error'); return; }
-      await AddonManager.showBackupPrompt();
-      installBtn.disabled = true;
-      if (statusEl) { statusEl.textContent = state.language === 'ar' ? 'جاري التثبيت...' : 'Installing...'; statusEl.classList.remove('hidden'); }
-      try {
-        const manifest = await AddonManager.installAddon(url);
-        renderAddonsList();
-        if ($('addon-install-url')) $('addon-install-url').value = '';
-        if (statusEl) statusEl.classList.add('hidden');
-        showToast(`${state.language === 'ar' ? 'تم تثبيت' : 'Installed'}: ${manifest.name}`, 'success');
-      } catch (err) {
-        if (statusEl) { statusEl.textContent = err.message; statusEl.classList.remove('hidden'); }
-        showToast(err.message, 'error');
-      } finally { installBtn.disabled = false; }
-    });
-  }
-
-  // Sync button
-  const syncBtn = $('addon-sync-btn');
-  if (syncBtn) {
-    syncBtn.addEventListener('click', async () => {
-      if (!AddonManager._hasChanges) {
-        showToast(state.language === 'ar' ? 'لا توجد تغييرات معلقة' : 'No pending changes', 'info');
-        return;
-      }
-      syncBtn.disabled = true;
-      try {
-        await AddonManager.saveAddons();
-        showToast(state.language === 'ar' ? 'تمت المزامنة مع Stremio ✓' : 'Synced with Stremio ✓', 'success');
-      } catch (e) { showToast(e.message || AddonManager.t('addon_err_save'), 'error'); }
-      finally { syncBtn.disabled = false; }
-    });
-  }
-}
-
-
 function updateLibrarySortUI() {
   const bar = $('library-sort-bar');
   if (state.showLibrarySort && state.currentTab !== 'search-results') {
@@ -2158,7 +1773,6 @@ async function handleLogout() {
 
   showToast(I18N[state.language || 'ar'].msg_logged_out, 'info');
 }
-
 
 // ==================== Library Loading ====================
 async function loadLibrary(forceRefresh = false, prefetchedCache = null) {
@@ -2486,14 +2100,7 @@ async function openDetail(libraryItem) {
 function renderDetailBasic(item) {
   const bg = document.querySelector('.detail-bg');
   bg.style.backgroundImage = `url('${item.poster || ''}')`;
-  const posterEl1 = $('detail-poster');
-  if (item.poster) {
-    posterEl1.src = item.poster;
-    posterEl1.style.display = '';
-  } else {
-    posterEl1.removeAttribute('src');
-    posterEl1.style.display = 'none';
-  }
+  $('detail-poster').src = item.poster || '';
   $('detail-title').textContent = item.name || '';
   $('detail-year').textContent = item.year || item.releaseInfo || '';
   $('detail-runtime').textContent = '';
@@ -2560,15 +2167,7 @@ function renderDetail(meta, libraryItem) {
   if (meta.background || meta.poster) {
     bg.style.backgroundImage = `url('${meta.background || meta.poster}')`;
   }
-  const posterEl2 = $('detail-poster');
-  const finalPoster = meta.poster || libraryItem.poster;
-  if (finalPoster) {
-    posterEl2.src = finalPoster;
-    posterEl2.style.display = '';
-  } else {
-    posterEl2.removeAttribute('src');
-    posterEl2.style.display = 'none';
-  }
+  $('detail-poster').src = meta.poster || libraryItem.poster || '';
   $('detail-title').textContent = meta.name || libraryItem.name || '';
   $('detail-year').textContent = meta.year || libraryItem.year || '';
   $('detail-runtime').textContent = meta.runtime || '';
@@ -3504,3 +3103,590 @@ function updateBackBtnIcon() {
     btn.removeAttribute('style');
   }
 }
+
+// ==================== Addon Manager ====================
+
+const AddonManager = {
+  _addons: [],         // working copy (may have unsaved changes)
+  _hasChanges: false,  // track whether sync is needed
+  _editingAddonIdx: -1, // index of addon being edited in catalog modal
+  _catalogEdits: [],   // working copy of catalogs during edit
+
+  t(key) {
+    return I18N[state.language || 'ar'][key] || key;
+  },
+
+  // Fetch addons from Stremio API
+  async fetchAddons() {
+    if (!state.auth?.authKey) return [];
+    const data = await StremioAPI.getAddons(state.auth.authKey);
+    this._addons = JSON.parse(JSON.stringify(data)); // deep clone
+    this._hasChanges = false;
+    this._updateSyncBtn();
+    return this._addons;
+  },
+
+  // Save addons to Stremio API
+  async saveAddons(addons) {
+    if (!state.auth?.authKey) throw new Error('Not logged in');
+    const res = await fetch('https://api.strem.io/api/addonCollectionSet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({ authKey: state.auth.authKey, addons })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+    return true;
+  },
+
+  // Fetch manifest from a URL and install
+  async installAddon(manifestUrl) {
+    const url = manifestUrl.trim();
+    if (!url) throw new Error(this.t('addon_err_no_url'));
+    let manifest;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      manifest = data;
+    } catch (e) {
+      throw new Error(this.t('addon_err_fetch'));
+    }
+    if (!manifest || !manifest.id) throw new Error(this.t('addon_err_fetch'));
+    // Check if already installed
+    const exists = this._addons.some(a => a.manifest?.id === manifest.id || a.transportUrl === url);
+    if (exists) {
+      throw new Error(state.language === 'ar' ? 'الإضافة مثبتة مسبقاً' : 'Addon already installed');
+    }
+    const newAddon = {
+      manifest,
+      transportUrl: url,
+      flags: {}
+    };
+    this._addons = [...this._addons, newAddon];
+    this._hasChanges = true;
+    this._updateSyncBtn();
+    return manifest;
+  },
+
+  // Remove addon (if not protected)
+  removeAddon(idx) {
+    const addon = this._addons[idx];
+    if (!addon) return;
+    if (addon.flags?.protected || addon.flags?.official) {
+      throw new Error(state.language === 'ar' ? 'لا يمكن حذف إضافة محمية' : 'Cannot remove protected addon');
+    }
+    this._addons.splice(idx, 1);
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Reorder addons
+  reorder(fromIdx, toIdx) {
+    if (fromIdx === toIdx) return;
+    const arr = [...this._addons];
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    this._addons = arr;
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Save catalog edits to a specific addon
+  saveCatalogEdits(addonIdx, catalogEdits) {
+    const addon = this._addons[addonIdx];
+    if (!addon || !addon.manifest) return;
+    addon.manifest.catalogs = catalogEdits.map(edit => ({
+      ...edit.original,
+      name: edit.name,
+      id: edit.original.id,
+      extra: edit.original.extra || [],
+      // Store hidden flag as behaviorHints
+      behaviorHints: { ...edit.original.behaviorHints, notWebReady: !edit.visible }
+    }));
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Export backup JSON
+  async backup() {
+    if (!state.auth?.authKey) return;
+    const data = await StremioAPI.getAddons(state.auth.authKey);
+    const blob = new Blob([JSON.stringify({ addons: data, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stremio-addons-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
+
+  // Auto-backup (silent, no prompt)
+  async silentBackup() {
+    try {
+      if (!state.auth?.authKey) return;
+      const data = await StremioAPI.getAddons(state.auth.authKey);
+      await chrome.storage.local.set({ addon_backup_auto: { addons: data, savedAt: new Date().toISOString() } });
+    } catch (e) { /* silent */ }
+  },
+
+  // Restore from JSON data
+  async restore(addons) {
+    this._addons = JSON.parse(JSON.stringify(addons));
+    this._hasChanges = true;
+    this._updateSyncBtn();
+  },
+
+  // Sync to Stremio
+  async sync() {
+    await this.saveAddons(this._addons);
+    this._hasChanges = false;
+    this._updateSyncBtn();
+    // update state.addons
+    state.addons = [...this._addons];
+  },
+
+  _updateSyncBtn() {
+    const btn = $('addon-sync-btn');
+    if (!btn) return;
+    if (this._hasChanges) {
+      btn.classList.add('has-changes');
+    } else {
+      btn.classList.remove('has-changes');
+    }
+  },
+
+  // Reset all state (call on logout / account switch)
+  reset() {
+    this._addons = [];
+    this._hasChanges = false;
+    this._editingAddonIdx = -1;
+    this._catalogEdits = [];
+    this._updateSyncBtn();
+    // Clear the rendered list
+    const list = $('addons-list');
+    if (list) list.innerHTML = '';
+  },
+
+  // Show a "backup recommended" dialog before destructive actions
+  // Returns a promise that resolves when user picks an option
+  showBackupPrompt() {
+    return new Promise((resolve) => {
+      const lang = state.language || 'ar';
+      const msg = lang === 'ar'
+        ? 'يُنصح بعمل نسخة احتياطية قبل هذا التعديل. هل تريد تصدير نسخة احتياطية أولاً؟'
+        : 'It is recommended to backup before this change. Export a backup first?';
+      const btnBackup = lang === 'ar' ? 'نسخ احتياطي وتابع' : 'Backup & Continue';
+      const btnSkip   = lang === 'ar' ? 'تابع بدون نسخ' : 'Continue without backup';
+
+      // Create modal
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      overlay.innerHTML = `
+        <div style="background:rgba(20,18,36,0.98);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:24px;max-width:320px;width:90%;box-shadow:0 24px 48px rgba(0,0,0,0.8);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span style="font-size:14px;font-weight:700;color:white;">${lang === 'ar' ? 'تحذير' : 'Warning'}</span>
+          </div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:20px;">${msg}</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button id="bp-backup-btn" style="padding:10px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);border-radius:8px;color:#a78bfa;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">${btnBackup}</button>
+            <button id="bp-skip-btn" style="padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.5);font-family:inherit;font-size:13px;cursor:pointer;">${btnSkip}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      overlay.querySelector('#bp-backup-btn').addEventListener('click', async () => {
+        overlay.remove();
+        await this.backup();
+        resolve('backup');
+      });
+      overlay.querySelector('#bp-skip-btn').addEventListener('click', () => {
+        overlay.remove();
+        resolve('skip');
+      });
+    });
+  }
+};
+
+// ==================== Addon Manager UI ====================
+
+function renderAddonsList() {
+  const container = $('addons-list');
+  const loading = $('addon-loading');
+  if (!container) return;
+
+  if (!AddonManager._addons || AddonManager._addons.length === 0) {
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">${state.language === 'ar' ? 'لا توجد إضافات' : 'No addons found'}</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  let dragSrcIdx = null;
+
+  AddonManager._addons.forEach((addon, idx) => {
+    const manifest = addon.manifest || {};
+    const isProtected = addon.flags?.protected || addon.flags?.official || false;
+    const name = manifest.name || manifest.id || 'Unknown Addon';
+    const version = manifest.version ? `v${manifest.version}` : '';
+    const logoUrl = manifest.logo || null;
+
+    const card = document.createElement('div');
+    card.className = 'addon-card';
+    card.draggable = true;
+    card.dataset.idx = idx;
+
+    const iconHtml = logoUrl
+      ? `<div class="addon-icon-wrapper"><img src="${logoUrl}" alt="" onerror="this.parentElement.innerHTML='🧩'"></div>`
+      : `<div class="addon-icon-placeholder">🧩</div>`;
+
+    const lang = state.language || 'ar';
+    const editLabel  = lang === 'ar' ? 'تعديل' : 'Edit';
+    const removeLabel = lang === 'ar' ? 'حذف' : 'Remove';
+    const protectedLabel = lang === 'ar' ? 'محمية' : 'Protected';
+
+    card.innerHTML = `
+      <div class="addon-drag-handle" title="${lang === 'ar' ? 'اسحب لإعادة الترتيب' : 'Drag to reorder'}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+      </div>
+      ${iconHtml}
+      <div class="addon-card-info">
+        <div class="addon-card-name">${escapeHTML(name)}</div>
+        ${version ? `<div class="addon-card-version">${version}</div>` : ''}
+        ${isProtected ? `<div class="addon-card-protected">🔒 ${protectedLabel}</div>` : ''}
+      </div>
+      <div class="addon-card-actions">
+        <button class="addon-card-btn edit-btn">${editLabel}</button>
+        ${!isProtected ? `<button class="addon-card-btn remove-btn" ${isProtected ? 'disabled' : ''}>${removeLabel}</button>` : ''}
+      </div>
+    `;
+
+    // Edit catalogs
+    card.querySelector('.edit-btn').addEventListener('click', () => openCatalogModal(idx));
+
+    // Remove
+    const removeBtn = card.querySelector('.remove-btn');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', async () => {
+        await AddonManager.showBackupPrompt();
+        try {
+          AddonManager.removeAddon(idx);
+          showToast(AddonManager.t('addon_remove_ok'), 'info');
+          renderAddonsList();
+        } catch (e) {
+          showToast(e.message, 'error');
+        }
+      });
+    }
+
+    // Drag & Drop
+    card.addEventListener('dragstart', (e) => {
+      dragSrcIdx = idx;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const toIdx = parseInt(card.dataset.idx, 10);
+      if (dragSrcIdx !== null && dragSrcIdx !== toIdx) {
+        AddonManager.reorder(dragSrcIdx, toIdx);
+        renderAddonsList();
+      }
+      dragSrcIdx = null;
+    });
+
+    container.appendChild(card);
+  });
+}
+
+function openCatalogModal(addonIdx) {
+  const modal = $('catalog-edit-modal');
+  if (!modal) return;
+  const addon = AddonManager._addons[addonIdx];
+  if (!addon) return;
+
+  AddonManager._editingAddonIdx = addonIdx;
+  const manifest = addon.manifest || {};
+  const catalogs = manifest.catalogs || [];
+
+  $('catalog-modal-addon-name').textContent = manifest.name || 'Addon';
+
+  // Build working copy
+  AddonManager._catalogEdits = catalogs.map(cat => ({
+    original: cat,
+    name: cat.name || cat.id,
+    visible: !(cat.behaviorHints?.notWebReady)
+  }));
+
+  renderCatalogEditList();
+  modal.classList.remove('hidden');
+}
+
+function renderCatalogEditList() {
+  const list = $('catalog-edit-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (!AddonManager._catalogEdits || AddonManager._catalogEdits.length === 0) {
+    list.innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">${state.language === 'ar' ? 'لا توجد كتالوجات' : 'No catalogs'}</div>`;
+    return;
+  }
+
+  let dragSrcCatIdx = null;
+
+  AddonManager._catalogEdits.forEach((edit, idx) => {
+    const item = document.createElement('div');
+    item.className = 'catalog-edit-item';
+    item.draggable = true;
+    item.dataset.idx = idx;
+
+    const typeLabel = edit.original.type || '';
+    const isVisible = edit.visible;
+    const eyeTitle  = state.language === 'ar' ? (isVisible ? 'إخفاء من الرئيسية' : 'إظهار في الرئيسية') : (isVisible ? 'Hide from home' : 'Show on home');
+
+    item.innerHTML = `
+      <div class="catalog-drag-handle">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+      </div>
+      <input type="text" class="catalog-name-input" value="${escapeHTML(edit.name)}" placeholder="Catalog name">
+      ${typeLabel ? `<span class="catalog-type-badge">${typeLabel}</span>` : ''}
+      <button class="catalog-eye-btn${isVisible ? ' visible' : ''}" title="${eyeTitle}">
+        ${isVisible
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+        }
+      </button>
+    `;
+
+    // Update edit on name change
+    const nameInput = item.querySelector('.catalog-name-input');
+    nameInput.addEventListener('input', () => {
+      AddonManager._catalogEdits[idx].name = nameInput.value;
+    });
+
+    // Toggle visibility
+    const eyeBtn = item.querySelector('.catalog-eye-btn');
+    eyeBtn.addEventListener('click', () => {
+      AddonManager._catalogEdits[idx].visible = !AddonManager._catalogEdits[idx].visible;
+      renderCatalogEditList();
+    });
+
+    // Catalog drag & drop
+    item.addEventListener('dragstart', (e) => {
+      dragSrcCatIdx = idx;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const toIdx = parseInt(item.dataset.idx, 10);
+      if (dragSrcCatIdx !== null && dragSrcCatIdx !== toIdx) {
+        const edits = [...AddonManager._catalogEdits];
+        const [moved] = edits.splice(dragSrcCatIdx, 1);
+        edits.splice(toIdx, 0, moved);
+        AddonManager._catalogEdits = edits;
+        renderCatalogEditList();
+      }
+      dragSrcCatIdx = null;
+    });
+
+    list.appendChild(item);
+  });
+}
+
+// ==================== Addon Manager Event Setup ====================
+
+async function loadAndRenderAddons() {
+  const loading = $('addon-loading');
+  if (loading) loading.classList.remove('hidden');
+  try {
+    await AddonManager.fetchAddons();
+    renderAddonsList();
+  } catch (e) {
+    showToast(e.message || AddonManager.t('addon_err_fetch'), 'error');
+  } finally {
+    if (loading) loading.classList.add('hidden');
+  }
+}
+
+function setupAddonManagerListeners() {
+  // Always reload addons fresh when tab is clicked
+  const addonsTabBtn = document.querySelector('[data-settings-tab="addons"]');
+  if (addonsTabBtn) {
+    addonsTabBtn.addEventListener('click', () => loadAndRenderAddons());
+  }
+
+  // Refresh button — force re-fetch from server
+  const refreshBtn = $('addon-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('rotating');
+      try {
+        await loadAndRenderAddons();
+        showToast(state.language === 'ar' ? 'تم تحديث الإضافات' : 'Addons refreshed', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('rotating');
+      }
+    });
+  }
+
+  // Backup button
+  const backupBtn = $('addon-backup-btn');
+  if (backupBtn) {
+    backupBtn.addEventListener('click', async () => {
+      backupBtn.disabled = true;
+      try {
+        await AddonManager.backup();
+        showToast(state.language === 'ar' ? 'تم تصدير النسخة الاحتياطية' : 'Backup exported', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        backupBtn.disabled = false;
+      }
+    });
+  }
+
+  // Restore from file
+  const restoreInput = $('addon-restore-input');
+  if (restoreInput) {
+    restoreInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      // Prompt backup before restore
+      await AddonManager.showBackupPrompt();
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const addons = parsed.addons || parsed;
+        if (!Array.isArray(addons)) throw new Error(state.language === 'ar' ? 'ملف غير صالح' : 'Invalid file');
+        await AddonManager.restore(addons);
+        renderAddonsList();
+        showToast(AddonManager.t('addon_restore_ok'), 'success');
+      } catch (e) {
+        showToast(e.message || AddonManager.t('addon_err_save'), 'error');
+      }
+      restoreInput.value = '';
+    });
+  }
+
+  // Install addon
+  const installBtn = $('addon-install-btn');
+  const installUrl = $('addon-install-url');
+  const installStatus = $('addon-install-status');
+  if (installBtn && installUrl) {
+    installBtn.addEventListener('click', async () => {
+      const url = installUrl.value.trim();
+      if (!url) {
+        if (installStatus) {
+          installStatus.textContent = AddonManager.t('addon_err_no_url');
+          installStatus.className = 'addon-status-msg error';
+          installStatus.classList.remove('hidden');
+        }
+        return;
+      }
+      // Prompt backup
+      await AddonManager.showBackupPrompt();
+      installBtn.disabled = true;
+      if (installStatus) installStatus.classList.add('hidden');
+      try {
+        const manifest = await AddonManager.installAddon(url);
+        installUrl.value = '';
+        renderAddonsList();
+        if (installStatus) {
+          installStatus.textContent = AddonManager.t('addon_install_ok');
+          installStatus.className = 'addon-status-msg success';
+          installStatus.classList.remove('hidden');
+        }
+        showToast(AddonManager.t('addon_install_ok'), 'success');
+      } catch (e) {
+        if (installStatus) {
+          installStatus.textContent = e.message;
+          installStatus.className = 'addon-status-msg error';
+          installStatus.classList.remove('hidden');
+        }
+        showToast(e.message, 'error');
+      } finally {
+        installBtn.disabled = false;
+      }
+    });
+  }
+
+  // Sync button
+  const syncBtn = $('addon-sync-btn');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', async () => {
+      if (!AddonManager._hasChanges) {
+        showToast(state.language === 'ar' ? 'لا يوجد تغييرات للمزامنة' : 'No changes to sync', 'info');
+        return;
+      }
+      syncBtn.classList.add('rotating');
+      syncBtn.disabled = true;
+      try {
+        await AddonManager.sync();
+        showToast(AddonManager.t('addon_sync_ok'), 'success');
+      } catch (e) {
+        showToast(e.message || AddonManager.t('addon_err_save'), 'error');
+      } finally {
+        syncBtn.classList.remove('rotating');
+        syncBtn.disabled = false;
+      }
+    });
+  }
+
+  // Catalog Edit Modal — close
+  const closeCatalogModal = () => {
+    const modal = $('catalog-edit-modal');
+    if (modal) modal.classList.add('hidden');
+    AddonManager._editingAddonIdx = -1;
+    AddonManager._catalogEdits = [];
+  };
+  const closeBtn1 = $('close-catalog-modal');
+  const closeBtn2 = $('close-catalog-modal-2');
+  if (closeBtn1) closeBtn1.addEventListener('click', closeCatalogModal);
+  if (closeBtn2) closeBtn2.addEventListener('click', closeCatalogModal);
+
+  // Catalog Edit Modal — save
+  const saveCatalogBtn = $('save-catalog-btn');
+  if (saveCatalogBtn) {
+    saveCatalogBtn.addEventListener('click', async () => {
+      // Auto silent backup before saving catalog changes
+      await AddonManager.silentBackup();
+      const idx = AddonManager._editingAddonIdx;
+      if (idx === -1) return;
+      try {
+        AddonManager.saveCatalogEdits(idx, AddonManager._catalogEdits);
+        closeCatalogModal();
+        renderAddonsList();
+        showToast(AddonManager.t('addon_catalog_save_ok'), 'success');
+      } catch (e) {
+        showToast(e.message || AddonManager.t('addon_err_save'), 'error');
+      }
+    });
+  }
+}
+
