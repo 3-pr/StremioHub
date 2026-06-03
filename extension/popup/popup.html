@@ -207,6 +207,8 @@
               <option value="app" data-i18n="open_app">تطبيق Stremio</option>
             </select>
           </div>
+
+
         </div>
 
         <div class="settings-list settings-tab-content hidden" id="settings-tab-library">
@@ -363,6 +365,40 @@
             <span data-i18n="addon_warning">هذا القسم يُعدّل إعدادات Stremio مباشرةً. يُنصح بعمل نسخة احتياطية قبل أي تعديل.</span>
           </div>
 
+          <!-- Addon Options -->
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="addon_auto_sync_title">المزامنة التلقائية</h4>
+              <p data-i18n="addon_auto_sync_desc">حفظ أي تغيير فوراً على Stremio عند ترتيب أو حذف إضافة دون الحاجة لضغط المزامنة.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="addon-auto-sync-checkbox">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="addon_disable_warning_title">إيقاف التنبيهات</h4>
+              <p data-i18n="addon_disable_warning_desc">عدم إظهار التذكير بالنسخ الاحتياطي عند حذف إضافة أو تعديل كتالوج.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="addon-disable-warning-checkbox">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="addon_disable_protected_title">تحذير الإضافات المحمية</h4>
+              <p data-i18n="addon_disable_protected_desc">إيقاف ظهور رسالة التحذير عند محاولة حذف إضافة أساسية/محمية.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="addon-disable-protected-warning-checkbox">
+              <span class="slider"></span>
+            </label>
+          </div>
+
           <!-- Backup / Restore -->
           <div class="setting-card addon-backup-card">
             <div class="setting-info">
@@ -370,13 +406,13 @@
               <p data-i18n="addon_backup_desc">احفظ إعدادات إضافاتك الحالية أو أعدها من ملف سابق.</p>
             </div>
             <div class="addon-backup-btns">
-              <button id="addon-backup-btn" class="addon-action-btn backup-btn" data-i18n="addon_backup_btn">
+              <button id="addon-backup-btn" class="addon-action-btn backup-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                تصدير
+                <span data-i18n="addon_backup_btn">تصدير</span>
               </button>
-              <label class="addon-action-btn restore-btn" for="addon-restore-input" data-i18n="addon_restore_btn">
+              <label class="addon-action-btn restore-btn" for="addon-restore-input">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                استعادة
+                <span data-i18n="addon_restore_btn">استعادة</span>
               </label>
               <input type="file" id="addon-restore-input" accept=".json" style="display:none;">
             </div>

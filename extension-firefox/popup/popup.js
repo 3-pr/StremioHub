@@ -165,7 +165,13 @@ const I18N = {
     addon_err_no_url: "أدخل رابط الإضافة",
     addon_err_fetch: "فشل جلب بيانات الإضافة",
     addon_err_save: "حدث خطأ أثناء الحفظ",
-    addon_refresh_btn: "تحديث"
+    addon_refresh_btn: "تحديث",
+    addon_auto_sync_title: "المزامنة التلقائية",
+    addon_auto_sync_desc: "حفظ أي تغيير فوراً على Stremio عند ترتيب أو حذف إضافة دون الحاجة لضغط المزامنة.",
+    addon_disable_warning_title: "إيقاف التنبيهات",
+    addon_disable_warning_desc: "عدم إظهار التذكير بالنسخ الاحتياطي عند حذف إضافة أو تعديل كتالوج.",
+    addon_disable_protected_title: "تحذير الإضافات المحمية",
+    addon_disable_protected_desc: "إيقاف ظهور رسالة التحذير عند محاولة حذف إضافة أساسية/محمية."
   },
   en: {
     app_title: "StremioHub",
@@ -333,6 +339,12 @@ const I18N = {
     addon_err_no_url: "Please enter an addon URL",
     addon_err_fetch: "Failed to fetch addon manifest",
     addon_err_save: "Error saving changes",
+    addon_auto_sync_title: "Auto Sync",
+    addon_auto_sync_desc: "Instantly save changes to Stremio when reordering or removing addons without clicking sync.",
+    addon_disable_warning_title: "Disable Backup Warnings",
+    addon_disable_warning_desc: "Do not show the backup reminder when removing an addon or editing catalogs.",
+    addon_disable_protected_title: "Protected Addon Warning",
+    addon_disable_protected_desc: "Disable the warning message when attempting to delete an official/protected addon.",
     addon_refresh_btn: "Refresh"
   }
 };
@@ -888,9 +900,14 @@ const state = {
   popupSize: 'default',
   metaAddon: 'auto',
   librarySort: 'lastwatched',
+  currentSettingsTab: 'general',
+  disableAddonWarning: false,
+  autoSyncAddons: false,
+  disableProtectedWarning: false,
   dismissedNotifs: {},
   stremioNotifications: null,
   openMethod: 'web',
+  autoSave: true,
   detailMode: 'fullscreen',
   toastEnabled: true,
   toastPosition: 'bottom-right',
@@ -928,10 +945,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (seriesGrid) seriesGrid.appendChild(createSkeletonCards(6));
   if (continueList) continueList.appendChild(createSkeletonList(3));
 
-  const localCache = await chrome.storage.local.get(['stremio_auth', 'saved_accounts', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'siteActions', 'language', 'toastEnabled', 'toastPosition', 'library_cache', 'currentScreen', 'currentTab', 'currentDetail', 'isFromSearch', 'searchQuery', 'isSearchModalOpen']);
+  const localCache = await chrome.storage.local.get(['stremio_auth', 'saved_accounts', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'webSwitcher', 'siteActions', 'language', 'toastEnabled', 'toastPosition', 'library_cache', 'currentScreen', 'currentTab', 'currentDetail', 'isFromSearch', 'searchQuery', 'isSearchModalOpen', 'disableAddonWarning', 'autoSyncAddons', 'disableProtectedWarning', 'currentSettingsTab']);
 
   if (localCache.currentScreen) state.currentScreen = localCache.currentScreen;
   if (localCache.currentTab) state.currentTab = localCache.currentTab;
+  if (localCache.currentSettingsTab) state.currentSettingsTab = localCache.currentSettingsTab;
   if (localCache.currentDetail) state.currentDetail = localCache.currentDetail;
   if (localCache.isFromSearch !== undefined) state.isFromSearch = localCache.isFromSearch;
 
@@ -950,9 +968,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (localCache.metaAddon) state.metaAddon = localCache.metaAddon;
   if (localCache.sitesEnabled) state.sitesEnabled = localCache.sitesEnabled;
   if (localCache.openMethod) state.openMethod = localCache.openMethod;
+
   if (localCache.siteActions) state.siteActions = localCache.siteActions;
   if (localCache.toastEnabled !== undefined) state.toastEnabled = localCache.toastEnabled;
   if (localCache.toastPosition) state.toastPosition = localCache.toastPosition;
+  if (localCache.disableAddonWarning !== undefined) state.disableAddonWarning = localCache.disableAddonWarning;
+  if (localCache.autoSyncAddons !== undefined) state.autoSyncAddons = localCache.autoSyncAddons;
+  if (localCache.disableProtectedWarning !== undefined) state.disableProtectedWarning = localCache.disableProtectedWarning;
 
   if ($('setting-autosave')) $('setting-autosave').checked = state.autoSave;
   if ($('setting-show-sort')) $('setting-show-sort').checked = state.showLibrarySort;
@@ -964,6 +986,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.toggle('detail-mode-card', state.detailMode === 'card');
   }
   if ($('setting-open-method')) $('setting-open-method').value = state.openMethod;
+
 
 
   if ($('setting-language')) {
@@ -995,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showScreen(state.currentScreen === 'settings' ? 'settings' : 'main');
     await loadLibrary(false, localCache.library_cache);
     await checkPendingSearch();
-    
+
     if (localCache.isSearchModalOpen) {
       const modal = $('search-modal');
       if (modal) modal.classList.remove('hidden');
@@ -1045,13 +1068,13 @@ function renderSavedAccounts(accounts) {
   section.classList.remove('hidden');
   loginFormContainer.classList.add('hidden');
   if (backToAccountsBtn) backToAccountsBtn.classList.remove('hidden');
-  
+
   list.innerHTML = '';
 
   accounts.forEach((acc, index) => {
     const card = document.createElement('div');
     card.className = 'saved-account-card';
-    
+
     // Fallback name if none provided
     const displayName = acc.name || acc.email;
     // Get first letter for icon
@@ -1122,13 +1145,13 @@ function openEditAccountModal(index) {
   const accounts = state.saved_accounts || [];
   const acc = accounts[index];
   if (!acc) return;
-  
+
   editAccountActiveIndex = index;
   window.editAccountSelectedAvatarId = acc.avatar_id || null;
-  
+
   const nameInput = $('edit-account-name-input');
   if (nameInput) nameInput.value = acc.name || acc.email || '';
-  
+
   const container = $('edit-avatar-picker-list');
   if (container && window.AVATARS) {
     container.innerHTML = '';
@@ -1146,7 +1169,7 @@ function openEditAccountModal(index) {
       container.appendChild(el);
     });
   }
-  
+
   modal.classList.remove('hidden');
 }
 
@@ -1154,31 +1177,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeEditBtn = $('close-edit-account-btn');
   const saveEditBtn = $('save-edit-account-btn');
   const editModal = $('edit-account-modal');
-  
+
   if (closeEditBtn && editModal) {
     closeEditBtn.addEventListener('click', () => {
       editModal.classList.add('hidden');
     });
   }
-  
+
   if (saveEditBtn && editModal) {
     saveEditBtn.addEventListener('click', async () => {
       if (editAccountActiveIndex === -1) return;
       const accounts = state.saved_accounts || [];
       const acc = accounts[editAccountActiveIndex];
       if (!acc) return;
-      
+
       const nameInput = $('edit-account-name-input');
       if (nameInput) acc.name = nameInput.value.trim();
-      
+
       acc.avatar_id = window.editAccountSelectedAvatarId;
-      
+
       await chrome.storage.local.set({ saved_accounts: accounts });
       state.saved_accounts = accounts;
-      
+
       // Re-render list
       renderSavedAccounts(accounts);
-      
+
       editModal.classList.add('hidden');
       showToast(state.language === 'ar' ? 'تم تحديث الحساب' : 'Account updated', 'success');
     });
@@ -1197,7 +1220,7 @@ function showScreen(name) {
     if (emailEl) {
       emailEl.textContent = state.auth?.email || 'غير معروف';
     }
-    
+
     const acc = (state.saved_accounts || []).find(a => a.email === state.auth?.email);
     const avatarContainer = document.querySelector('.account-avatar');
     if (avatarContainer) {
@@ -1215,14 +1238,14 @@ function showScreen(name) {
     }
 
     // Initialize the tab position on screen open
-    setTimeout(() => switchSettingsTab('general'), 10);
+    setTimeout(() => switchSettingsTab(state.currentSettingsTab || 'general'), 10);
   }
 
   if (name === 'main' || name === 'settings') {
     const acc = (state.saved_accounts || []).find(a => a.email === state.auth?.email);
     const homeAvatar = $('home-avatar');
     const popoverAvatar = $('popover-avatar');
-    
+
     if (homeAvatar && popoverAvatar) {
       if (acc && acc.avatar_id && window.AVATARS) {
         const av = window.AVATARS.find(a => a.id === acc.avatar_id);
@@ -1241,7 +1264,7 @@ function showScreen(name) {
         popoverAvatar.style.backgroundColor = '';
       }
     }
-    
+
     const popName = $('popover-name');
     const popEmail = $('popover-email');
     if (popName && popEmail) {
@@ -1254,34 +1277,34 @@ function showScreen(name) {
 function initAvatarPicker() {
   const container = document.getElementById('avatar-picker-list');
   if (!container || !window.AVATARS) return;
-  
+
   container.innerHTML = '';
-  
+
   window.AVATARS.forEach((avatar, index) => {
     const el = document.createElement('div');
     el.className = 'avatar-item';
     el.dataset.id = avatar.id;
     el.title = avatar.display_name;
     el.style.backgroundColor = avatar.bg_color;
-    
+
     // Select the first one by default
     if (index === 0) {
       el.classList.add('selected');
       window.selectedAvatarId = avatar.id;
     }
-    
+
     const img = document.createElement('img');
     img.src = `../assets/avatars/${avatar.storage_path}`;
     img.alt = avatar.display_name;
-    
+
     el.appendChild(img);
-    
+
     el.addEventListener('click', () => {
       document.querySelectorAll('.avatar-item').forEach(a => a.classList.remove('selected'));
       el.classList.add('selected');
       window.selectedAvatarId = avatar.id;
     });
-    
+
     container.appendChild(el);
   });
 }
@@ -1289,27 +1312,27 @@ function initAvatarPicker() {
 function initSettingsAvatarPicker() {
   const container = document.getElementById('settings-avatar-picker-list');
   if (!container || !window.AVATARS) return;
-  
+
   container.innerHTML = '';
-  
+
   window.AVATARS.forEach((avatar, index) => {
     const el = document.createElement('div');
     el.className = 'avatar-item';
     el.dataset.id = avatar.id;
     el.title = avatar.display_name;
     el.style.backgroundColor = avatar.bg_color;
-    
+
     const img = document.createElement('img');
     img.src = `../assets/avatars/${avatar.storage_path}`;
     img.alt = avatar.display_name;
     el.appendChild(img);
-    
+
     el.addEventListener('click', () => {
       container.querySelectorAll('.avatar-item').forEach(a => a.classList.remove('selected'));
       el.classList.add('selected');
       window.settingsSelectedAvatarId = avatar.id;
     });
-    
+
     container.appendChild(el);
   });
 }
@@ -1389,12 +1412,12 @@ function setupEventListeners() {
   if (settingsAvatar && changeAvatarModal) {
     settingsAvatar.addEventListener('click', async () => {
       changeAvatarModal.classList.remove('hidden');
-      
+
       const { saved_accounts } = await chrome.storage.local.get(['saved_accounts']);
       const accounts = saved_accounts || [];
       const acc = accounts.find(a => a.email === state.auth?.email);
       let currentAvatarId = acc?.avatar_id;
-      
+
       const container = $('settings-avatar-picker-list');
       container.querySelectorAll('.avatar-item').forEach(el => {
         el.classList.remove('selected');
@@ -1573,6 +1596,13 @@ function setupEventListeners() {
     chrome.storage.local.set({ autoSave: state.autoSave });
   });
 
+  if ($('setting-web-switcher')) {
+    $('setting-web-switcher').addEventListener('change', (e) => {
+      state.webSwitcher = e.target.checked;
+      chrome.storage.local.set({ webSwitcher: state.webSwitcher });
+    });
+  }
+
   if ($('setting-toast-enabled')) {
     $('setting-toast-enabled').addEventListener('change', (e) => {
       state.toastEnabled = e.target.checked;
@@ -1718,17 +1748,17 @@ async function handleLogin() {
       if (saveAccount) {
         const { saved_accounts } = await chrome.storage.local.get(['saved_accounts']);
         let accounts = saved_accounts || [];
-        
+
         // Remove existing account with same email if present
         accounts = accounts.filter(acc => acc.email !== authResult.email);
-        
+
         accounts.push({
           email: authResult.email,
           name: accountName,
           auth: authResult,
           avatar_id: window.selectedAvatarId || null
         });
-        
+
         await chrome.storage.local.set({ saved_accounts: accounts });
         // Update local state copy so settings screen can find it
         state.saved_accounts = accounts;
@@ -2524,9 +2554,12 @@ function switchTab(tabId) {
 }
 
 function switchSettingsTab(tabId) {
+  state.currentSettingsTab = tabId;
+  chrome.storage.local.set({ currentSettingsTab: tabId });
+
   $$('.settings-tab-btn').forEach(b => b.classList.remove('active'));
   $$('.settings-tab-content').forEach(c => c.classList.add('hidden'));
-  
+
   const btn = document.querySelector(`[data-settings-tab="${tabId}"]`);
   if (btn) {
     btn.classList.add('active');
@@ -2536,7 +2569,7 @@ function switchSettingsTab(tabId) {
       indicator.style.transform = `translateX(${btn.offsetLeft}px)`;
     }
   }
-  
+
   const content = $(`settings-tab-${tabId}`);
   if (content) content.classList.remove('hidden');
 }
@@ -2726,11 +2759,11 @@ function encodeWatchedBitfield(watchedVideoIds, seriesId, videoIds) {
     }
   }
   let deflated;
-  try { 
-    deflated = window.pako ? window.pako.deflate(bytes) : pako.deflate(bytes); 
-  } catch (e) { 
+  try {
+    deflated = window.pako ? window.pako.deflate(bytes) : pako.deflate(bytes);
+  } catch (e) {
     console.error('Bitfield compression failed:', e);
-    throw new Error('Compression failed'); 
+    throw new Error('Compression failed');
   }
   let binaryStr = '';
   for (let i = 0; i < deflated.length; i++) {
@@ -2787,7 +2820,7 @@ async function saveWatchedState(item, allVideos, watchedSet, targetVideoId, tOff
       });
       const data = await resp.json();
       if (resp.ok && !data.error) {
-        const msg = isRemoved 
+        const msg = isRemoved
           ? (I18N[state.language || 'ar'].msg_removed_watched || 'تم إزالة المشاهدة')
           : (I18N[state.language || 'ar'].msg_marked_watched || 'تم التحديث بنجاح');
         showToast(msg, 'success');
@@ -3180,9 +3213,6 @@ const AddonManager = {
   removeAddon(idx) {
     const addon = this._addons[idx];
     if (!addon) return;
-    if (addon.flags?.protected || addon.flags?.official) {
-      throw new Error(state.language === 'ar' ? 'لا يمكن حذف إضافة محمية' : 'Cannot remove protected addon');
-    }
     this._addons.splice(idx, 1);
     this._hasChanges = true;
     this._updateSyncBtn();
@@ -3223,7 +3253,7 @@ const AddonManager = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `stremio-addons-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `stremio-addons-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   },
@@ -3275,20 +3305,63 @@ const AddonManager = {
     if (list) list.innerHTML = '';
   },
 
+  // Show a protected addon removal warning dialog
+  // Returns a promise that resolves to true (continue) or false (cancel)
+  showProtectedPrompt() {
+    if (state.disableProtectedWarning) return Promise.resolve(true);
+
+    return new Promise((resolve) => {
+      const lang = state.language || 'ar';
+      const msg = lang === 'ar'
+        ? 'هذه الإضافة محمية أو أساسية. قد يؤثر حذفها على عمل الحساب. هل أنت متأكد من الحذف؟'
+        : 'This addon is protected/official. Removing it may affect your account. Are you sure?';
+      const btnYes = lang === 'ar' ? 'حذف على أي حال' : 'Remove Anyway';
+      const btnNo = lang === 'ar' ? 'إلغاء' : 'Cancel';
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);font-family: "Thmanyah Sans", system-ui, sans-serif;';
+      overlay.innerHTML = `
+        <div style="background:rgba(20,18,36,0.98);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:24px;max-width:320px;width:90%;box-shadow:0 24px 48px rgba(0,0,0,0.8);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;color:#ef4444;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h3 style="margin:0;font-size:16px;">${lang === 'ar' ? 'تحذير' : 'Warning'}</h3>
+          </div>
+          <p style="margin:0 0 20px 0;font-size:14px;color:var(--text-secondary);line-height:1.5;">${msg}</p>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button id="prot-btn-no" style="padding:8px 16px;border-radius:6px;border:none;background:rgba(255,255,255,0.1);color:white;cursor:pointer;font-weight:600;font-family:inherit;">${btnNo}</button>
+            <button id="prot-btn-yes" style="padding:8px 16px;border-radius:6px;border:none;background:#ef4444;color:white;cursor:pointer;font-weight:600;font-family:inherit;">${btnYes}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      overlay.querySelector('#prot-btn-yes').addEventListener('click', () => {
+        overlay.remove();
+        resolve(true);
+      });
+      overlay.querySelector('#prot-btn-no').addEventListener('click', () => {
+        overlay.remove();
+        resolve(false);
+      });
+    });
+  },
+
   // Show a "backup recommended" dialog before destructive actions
   // Returns a promise that resolves when user picks an option
   showBackupPrompt() {
+    if (state.disableAddonWarning) return Promise.resolve(true);
+
     return new Promise((resolve) => {
       const lang = state.language || 'ar';
       const msg = lang === 'ar'
         ? 'يُنصح بعمل نسخة احتياطية قبل هذا التعديل. هل تريد تصدير نسخة احتياطية أولاً؟'
         : 'It is recommended to backup before this change. Export a backup first?';
       const btnBackup = lang === 'ar' ? 'نسخ احتياطي وتابع' : 'Backup & Continue';
-      const btnSkip   = lang === 'ar' ? 'تابع بدون نسخ' : 'Continue without backup';
+      const btnSkip = lang === 'ar' ? 'تابع بدون نسخ' : 'Continue without backup';
 
       // Create modal
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);font-family: "Thmanyah Sans", system-ui, sans-serif;';
       overlay.innerHTML = `
         <div style="background:rgba(20,18,36,0.98);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:24px;max-width:320px;width:90%;box-shadow:0 24px 48px rgba(0,0,0,0.8);">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -3349,7 +3422,7 @@ function renderAddonsList() {
       : `<div class="addon-icon-placeholder">🧩</div>`;
 
     const lang = state.language || 'ar';
-    const editLabel  = lang === 'ar' ? 'تعديل' : 'Edit';
+    const editLabel = lang === 'ar' ? 'تعديل' : 'Edit';
     const removeLabel = lang === 'ar' ? 'حذف' : 'Remove';
     const protectedLabel = lang === 'ar' ? 'محمية' : 'Protected';
 
@@ -3365,7 +3438,7 @@ function renderAddonsList() {
       </div>
       <div class="addon-card-actions">
         <button class="addon-card-btn edit-btn">${editLabel}</button>
-        ${!isProtected ? `<button class="addon-card-btn remove-btn" ${isProtected ? 'disabled' : ''}>${removeLabel}</button>` : ''}
+        <button class="addon-card-btn remove-btn">${removeLabel}</button>
       </div>
     `;
 
@@ -3376,11 +3449,19 @@ function renderAddonsList() {
     const removeBtn = card.querySelector('.remove-btn');
     if (removeBtn) {
       removeBtn.addEventListener('click', async () => {
+        if (isProtected) {
+          const proceed = await AddonManager.showProtectedPrompt();
+          if (!proceed) return;
+        }
+
         await AddonManager.showBackupPrompt();
         try {
           AddonManager.removeAddon(idx);
           showToast(AddonManager.t('addon_remove_ok'), 'info');
           renderAddonsList();
+          if (state.autoSyncAddons) {
+            $('addon-sync-btn').click();
+          }
         } catch (e) {
           showToast(e.message, 'error');
         }
@@ -3396,6 +3477,11 @@ function renderAddonsList() {
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
       container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      
+      // Auto sync after drag end if order changed
+      if (state.autoSyncAddons && AddonManager._hasChanges) {
+        $('addon-sync-btn').click();
+      }
     });
     card.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -3461,7 +3547,7 @@ function renderCatalogEditList() {
 
     const typeLabel = edit.original.type || '';
     const isVisible = edit.visible;
-    const eyeTitle  = state.language === 'ar' ? (isVisible ? 'إخفاء من الرئيسية' : 'إظهار في الرئيسية') : (isVisible ? 'Hide from home' : 'Show on home');
+    const eyeTitle = state.language === 'ar' ? (isVisible ? 'إخفاء من الرئيسية' : 'إظهار في الرئيسية') : (isVisible ? 'Hide from home' : 'Show on home');
 
     item.innerHTML = `
       <div class="catalog-drag-handle">
@@ -3471,9 +3557,9 @@ function renderCatalogEditList() {
       ${typeLabel ? `<span class="catalog-type-badge">${typeLabel}</span>` : ''}
       <button class="catalog-eye-btn${isVisible ? ' visible' : ''}" title="${eyeTitle}">
         ${isVisible
-          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
-          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
-        }
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+      }
       </button>
     `;
 
@@ -3563,6 +3649,34 @@ function setupAddonManagerListeners() {
     });
   }
 
+  // Bind settings checkboxes
+  const disableWarningCb = $('addon-disable-warning-checkbox');
+  if (disableWarningCb) {
+    disableWarningCb.checked = state.disableAddonWarning;
+    disableWarningCb.addEventListener('change', (e) => {
+      state.disableAddonWarning = e.target.checked;
+      chrome.storage.local.set({ disableAddonWarning: state.disableAddonWarning });
+    });
+  }
+
+  const disableProtectedCb = $('addon-disable-protected-warning-checkbox');
+  if (disableProtectedCb) {
+    disableProtectedCb.checked = state.disableProtectedWarning;
+    disableProtectedCb.addEventListener('change', (e) => {
+      state.disableProtectedWarning = e.target.checked;
+      chrome.storage.local.set({ disableProtectedWarning: state.disableProtectedWarning });
+    });
+  }
+
+  const autoSyncCb = $('addon-auto-sync-checkbox');
+  if (autoSyncCb) {
+    autoSyncCb.checked = state.autoSyncAddons;
+    autoSyncCb.addEventListener('change', (e) => {
+      state.autoSyncAddons = e.target.checked;
+      chrome.storage.local.set({ autoSyncAddons: state.autoSyncAddons });
+    });
+  }
+
   // Backup button
   const backupBtn = $('addon-backup-btn');
   if (backupBtn) {
@@ -3594,6 +3708,9 @@ function setupAddonManagerListeners() {
         if (!Array.isArray(addons)) throw new Error(state.language === 'ar' ? 'ملف غير صالح' : 'Invalid file');
         await AddonManager.restore(addons);
         renderAddonsList();
+        if (state.autoSyncAddons) {
+          $('addon-sync-btn').click();
+        }
         showToast(AddonManager.t('addon_restore_ok'), 'success');
       } catch (e) {
         showToast(e.message || AddonManager.t('addon_err_save'), 'error');
@@ -3625,6 +3742,9 @@ function setupAddonManagerListeners() {
         const manifest = await AddonManager.installAddon(url);
         installUrl.value = '';
         renderAddonsList();
+        if (state.autoSyncAddons) {
+          $('addon-sync-btn').click();
+        }
         if (installStatus) {
           installStatus.textContent = AddonManager.t('addon_install_ok');
           installStatus.className = 'addon-status-msg success';
@@ -3690,6 +3810,9 @@ function setupAddonManagerListeners() {
         AddonManager.saveCatalogEdits(idx, AddonManager._catalogEdits);
         closeCatalogModal();
         renderAddonsList();
+        if (state.autoSyncAddons) {
+          $('addon-sync-btn').click();
+        }
         showToast(AddonManager.t('addon_catalog_save_ok'), 'success');
       } catch (e) {
         showToast(e.message || AddonManager.t('addon_err_save'), 'error');

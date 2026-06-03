@@ -3193,3 +3193,42 @@ html[dir="ltr"] .popover-menu-item {
   color: var(--accent-light);
 }
 .catalog-eye-btn:hover { background: rgba(255,255,255,0.08); }
+
+/* Compact mode fixes for Addons section */
+body.compact-mode #settings-tab-addons .setting-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+body.compact-mode #settings-tab-addons .setting-card .toggle-switch,
+body.compact-mode #settings-tab-addons .setting-card .addon-backup-btns {
+  align-self: flex-end;
+}
+body.compact-mode #settings-tab-addons .setting-info {
+  width: 100%;
+}
+body.compact-mode #settings-tab-addons .setting-info[style*="flex-direction: row"] {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+body.compact-mode #settings-tab-addons .setting-info[style*="flex-direction: row"] > div:last-child {
+  width: 100%;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+body.compact-mode .addon-install-row {
+  flex-direction: column;
+  width: 100%;
+}
+body.compact-mode .addon-install-row .install-btn {
+  width: 100%;
+  justify-content: center;
+}
+body.compact-mode .addon-card-actions {
+  flex-direction: column;
+  gap: 4px;
+}
+body.compact-mode .addon-card-actions .addon-card-btn {
+  width: 100%;
+  justify-content: center;
+}
