@@ -96,6 +96,12 @@ body.compact-mode {
   max-height: 480px;
 }
 
+body.mini-mode {
+  --popup-width: 520px;
+  height: 536px;
+  max-height: 536px;
+}
+
 /* Liquid Glass Background Elements */
 body::before,
 body::after {
@@ -856,7 +862,7 @@ body::after {
   gap: 16px;
 }
 
-body.compact-mode .items-grid {
+body.compact-mode .items-grid, body.mini-mode .items-grid {
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
@@ -2235,21 +2241,21 @@ body.detail-mode-card .action-row-modern {
 }
 
 /* Compact mode adjustments for Card Mode */
-body.compact-mode.detail-mode-card .detail-content-glass {
+body.compact-mode.detail-mode-card .detail-content-glass, body.mini-mode.detail-mode-card .detail-content-glass {
   grid-template-columns: 140px 1fr;
   padding: 24px;
   gap: 20px;
 }
 
-body.compact-mode.detail-mode-card #detail-title {
+body.compact-mode.detail-mode-card #detail-title, body.mini-mode.detail-mode-card #detail-title {
   font-size: 22px;
 }
 
-body.compact-mode.detail-mode-card .action-row-modern {
+body.compact-mode.detail-mode-card .action-row-modern, body.mini-mode.detail-mode-card .action-row-modern {
   gap: 6px;
 }
 
-body.compact-mode.detail-mode-card .icon-circle {
+body.compact-mode.detail-mode-card .icon-circle, body.mini-mode.detail-mode-card .icon-circle {
   width: 38px;
   height: 38px;
 }
@@ -3195,40 +3201,93 @@ html[dir="ltr"] .popover-menu-item {
 .catalog-eye-btn:hover { background: rgba(255,255,255,0.08); }
 
 /* Compact mode fixes for Addons section */
-body.compact-mode #settings-tab-addons .setting-card {
+body.compact-mode #settings-tab-addons .setting-card, body.mini-mode #settings-tab-addons .setting-card {
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
 }
-body.compact-mode #settings-tab-addons .setting-card .toggle-switch,
-body.compact-mode #settings-tab-addons .setting-card .addon-backup-btns {
+body.compact-mode #settings-tab-addons .setting-card .toggle-switch, body.mini-mode #settings-tab-addons .setting-card .toggle-switch,
+body.compact-mode #settings-tab-addons .setting-card .addon-backup-btns, body.mini-mode #settings-tab-addons .setting-card .addon-backup-btns {
   align-self: flex-end;
 }
-body.compact-mode #settings-tab-addons .setting-info {
+body.compact-mode #settings-tab-addons .setting-info, body.mini-mode #settings-tab-addons .setting-info {
   width: 100%;
 }
-body.compact-mode #settings-tab-addons .setting-info[style*="flex-direction: row"] {
+body.compact-mode #settings-tab-addons .setting-info[style*="flex-direction: row"], body.mini-mode #settings-tab-addons .setting-info[style*="flex-direction: row"] {
   flex-direction: column !important;
   align-items: flex-start !important;
 }
-body.compact-mode #settings-tab-addons .setting-info[style*="flex-direction: row"] > div:last-child {
+body.compact-mode #settings-tab-addons .setting-info[style*="flex-direction: row"] > div:last-child, body.mini-mode #settings-tab-addons .setting-info[style*="flex-direction: row"] > div:last-child {
   width: 100%;
   justify-content: flex-end;
   margin-top: 8px;
 }
-body.compact-mode .addon-install-row {
+body.compact-mode .addon-install-row, body.mini-mode .addon-install-row {
   flex-direction: column;
   width: 100%;
 }
-body.compact-mode .addon-install-row .install-btn {
+body.compact-mode .addon-install-row .install-btn, body.mini-mode .addon-install-row .install-btn {
   width: 100%;
   justify-content: center;
 }
-body.compact-mode .addon-card-actions {
+body.compact-mode .addon-card-actions, body.mini-mode .addon-card-actions {
   flex-direction: column;
   gap: 4px;
 }
-body.compact-mode .addon-card-actions .addon-card-btn {
+body.compact-mode .addon-card-actions .addon-card-btn, body.mini-mode .addon-card-actions .addon-card-btn {
   width: 100%;
   justify-content: center;
+}
+
+/* ==================== OLED Theme ==================== */
+body.theme-oled {
+  --bg-primary: #020005;
+  --bg-gradient: radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+                 radial-gradient(circle at 0% 100%, rgba(192, 132, 252, 0.15) 0%, transparent 50%),
+                 #020005;
+  --glass-surface: rgba(20, 10, 35, 0.4);
+  --glass-surface-hover: rgba(35, 15, 60, 0.5);
+  --glass-border: rgba(168, 85, 247, 0.2);
+  --glass-border-light: rgba(168, 85, 247, 0.3);
+  
+  --radius: 16px;
+  --radius-sm: 10px;
+  --text-primary: #f5f3ff;
+  --accent: #9333ea;
+  --accent-light: #c084fc;
+  --accent-glow: rgba(147, 51, 234, 0.5);
+}
+
+body.theme-oled::before,
+body.theme-oled::after {
+  filter: blur(80px);
+  opacity: 0.7;
+}
+
+body.theme-oled::before {
+  background: rgba(168, 85, 247, 0.2);
+}
+
+body.theme-oled::after {
+  background: rgba(147, 51, 234, 0.15);
+}
+
+body.theme-oled .glass-header {
+  background: rgba(5, 2, 10, 0.7);
+  border-bottom: 1px solid rgba(147, 51, 234, 0.15);
+}
+
+body.theme-oled .setting-card,
+body.theme-oled .login-form,
+body.theme-oled .search-bar input {
+  background: rgba(147, 51, 234, 0.05);
+  border-color: rgba(168, 85, 247, 0.15);
+}
+
+body.theme-oled .addon-card {
+  border-bottom-color: rgba(147, 51, 234, 0.1);
+}
+
+body.theme-oled .tab-indicator {
+  background: linear-gradient(135deg, #a855f7, #7e22ce);
 }

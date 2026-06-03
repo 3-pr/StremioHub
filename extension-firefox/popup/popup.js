@@ -33,6 +33,11 @@ const I18N = {
     size_desc: "تخصيص أبعاد نافذة الإضافة لتناسب شاشتك المفتوحة.",
     size_default: "الافتراضي (عريض)",
     size_compact: "مدمج (أصغر)",
+    size_mini: "جوال (عمودي)",
+    theme_title: "المظهر (الثيم)",
+    theme_desc: "تخصيص ألوان وشكل الواجهة.",
+    theme_default: "الافتراضي",
+    theme_oled: "بنفسجي OLED ناعم",
     sites_title: "المواقع المدعومة",
     sites_desc: "تحكم بظهور الأزرار في كل موقع وماذا تفعل (حفظ أو فتح).",
     action_save: "حفظ",
@@ -207,6 +212,7 @@ const I18N = {
     size_desc: "Customize the extension window dimensions.",
     size_default: "Default (Wide)",
     size_compact: "Compact (Smaller)",
+    size_mini: "Mini (Portrait)",
     sites_title: "Supported Sites",
     sites_desc: "Control button visibility and action (Save or Open).",
     action_save: "Save",
@@ -898,6 +904,7 @@ const state = {
   searchFilter: 'all',
   showLibrarySort: true,
   popupSize: 'default',
+  theme: 'default',
   metaAddon: 'auto',
   librarySort: 'lastwatched',
   currentSettingsTab: 'general',
@@ -945,7 +952,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (seriesGrid) seriesGrid.appendChild(createSkeletonCards(6));
   if (continueList) continueList.appendChild(createSkeletonList(3));
 
-  const localCache = await chrome.storage.local.get(['stremio_auth', 'saved_accounts', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'webSwitcher', 'siteActions', 'language', 'toastEnabled', 'toastPosition', 'library_cache', 'currentScreen', 'currentTab', 'currentDetail', 'isFromSearch', 'searchQuery', 'isSearchModalOpen', 'disableAddonWarning', 'autoSyncAddons', 'disableProtectedWarning', 'currentSettingsTab']);
+  const localCache = await chrome.storage.local.get(['stremio_auth', 'saved_accounts', 'libraryFilter', 'librarySort', 'autoSave', 'showLibrarySort', 'popupSize', 'theme', 'detailMode', 'metaAddon', 'dismissedNotifs', 'sitesEnabled', 'openMethod', 'webSwitcher', 'siteActions', 'language', 'toastEnabled', 'toastPosition', 'library_cache', 'currentScreen', 'currentTab', 'currentDetail', 'isFromSearch', 'searchQuery', 'isSearchModalOpen', 'disableAddonWarning', 'autoSyncAddons', 'disableProtectedWarning', 'currentSettingsTab']);
 
   if (localCache.currentScreen) state.currentScreen = localCache.currentScreen;
   if (localCache.currentTab) state.currentTab = localCache.currentTab;
@@ -964,6 +971,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (localCache.libraryFilter) state.libraryFilter = localCache.libraryFilter;
   if (localCache.librarySort) state.librarySort = localCache.librarySort;
   if (localCache.popupSize) state.popupSize = localCache.popupSize;
+  if (localCache.theme) state.theme = localCache.theme;
   if (localCache.detailMode) state.detailMode = localCache.detailMode;
   if (localCache.metaAddon) state.metaAddon = localCache.metaAddon;
   if (localCache.sitesEnabled) state.sitesEnabled = localCache.sitesEnabled;
@@ -981,6 +989,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if ($('setting-toast-enabled')) $('setting-toast-enabled').checked = state.toastEnabled;
   if ($('setting-toast-position')) $('setting-toast-position').value = state.toastPosition;
   if ($('setting-popup-size')) $('setting-popup-size').value = state.popupSize || 'default';
+  if ($('setting-theme')) $('setting-theme').value = state.theme || 'default';
   if ($('setting-detail-mode')) {
     $('setting-detail-mode').value = state.detailMode || 'fullscreen';
     document.body.classList.toggle('detail-mode-card', state.detailMode === 'card');
@@ -1008,6 +1017,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (state.popupSize === 'compact') {
     document.body.classList.add('compact-mode');
+  } else if (state.popupSize === 'mini') {
+    document.body.classList.add('mini-mode');
+  }
+  if (state.theme === 'oled') {
+    document.body.classList.add('theme-oled');
   }
 
   state.dismissedNotifs = localCache.dismissedNotifs || {};
@@ -1638,10 +1652,24 @@ function setupEventListeners() {
     settingPopupSize.addEventListener('change', (e) => {
       state.popupSize = e.target.value;
       chrome.storage.local.set({ popupSize: state.popupSize });
+      document.body.classList.remove('compact-mode', 'mini-mode');
       if (state.popupSize === 'compact') {
         document.body.classList.add('compact-mode');
+      } else if (state.popupSize === 'mini') {
+        document.body.classList.add('mini-mode');
+      }
+    });
+  }
+
+  const settingTheme = $('setting-theme');
+  if (settingTheme) {
+    settingTheme.addEventListener('change', (e) => {
+      state.theme = e.target.value;
+      chrome.storage.local.set({ theme: state.theme });
+      if (state.theme === 'oled') {
+        document.body.classList.add('theme-oled');
       } else {
-        document.body.classList.remove('compact-mode');
+        document.body.classList.remove('theme-oled');
       }
     });
   }
