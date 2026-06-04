@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "StremioHub",
+    "description": "The name of the extension"
+  },
+  "extensionDescription": {
+    "message": "The all-in-one Stremio companion for your browser.",
+    "description": "The description of the extension"
+  }
+}

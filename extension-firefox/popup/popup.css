@@ -1399,9 +1399,29 @@ body.compact-mode .items-grid, body.mini-mode .items-grid {
   line-height: 1.2;
   font-weight: 600;
   max-width: 64px;
+  margin-top: 24px;
 }
 
-/* ==================== Action Buttons ==================== */
+/* ==================== Color Picker Swatches ==================== */
+.color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.color-swatch:hover {
+  transform: scale(1.15);
+}
+.color-swatch.active {
+  border-color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+/* ==================== Footer / Credits ==================== */
 .detail-actions {
   padding: 0 20px 24px;
   display: flex;
@@ -3237,6 +3257,78 @@ body.compact-mode .addon-card-actions, body.mini-mode .addon-card-actions {
 body.compact-mode .addon-card-actions .addon-card-btn, body.mini-mode .addon-card-actions .addon-card-btn {
   width: 100%;
   justify-content: center;
+}
+
+/* ==================== Compact / Mini: Settings Tab Bar ==================== */
+
+/* Compact mode — tabs stay on one row but smaller */
+body.compact-mode .settings-tabs {
+  padding: 4px;
+  gap: 2px;
+}
+body.compact-mode .settings-tab-btn {
+  padding: 6px 10px;
+  font-size: 11.5px;
+}
+
+/* Mini mode — wrap tabs into 2 rows of 3 */
+body.mini-mode .settings-tabs {
+  flex-wrap: wrap;
+  padding: 4px;
+  gap: 3px;
+  overflow-x: visible;
+}
+body.mini-mode .settings-tab-btn {
+  flex: 1 1 calc(33.333% - 6px);
+  min-width: 0;
+  padding: 6px 4px;
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* In mini-mode 2-row layout, the floating indicator can't track rows — use bg tint instead */
+body.mini-mode .settings-tab-indicator {
+  display: none;
+}
+body.mini-mode .settings-tab-btn.active {
+  background: var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+/* Compact / mini: tighter account card & settings content */
+body.compact-mode .settings-content,
+body.mini-mode .settings-content {
+  padding: 16px;
+  gap: 16px;
+}
+body.compact-mode .account-card-modern,
+body.mini-mode .account-card-modern {
+  padding: 14px;
+  gap: 12px;
+}
+body.compact-mode .account-stats,
+body.mini-mode .account-stats {
+  display: none;
+}
+body.compact-mode .account-header,
+body.mini-mode .account-header {
+  gap: 12px;
+}
+body.compact-mode .account-avatar,
+body.mini-mode .account-avatar {
+  width: 38px;
+  height: 38px;
+}
+body.compact-mode .settings-list,
+body.mini-mode .settings-list {
+  gap: 8px;
+}
+body.compact-mode .setting-card,
+body.mini-mode .setting-card {
+  padding: 12px;
 }
 
 /* ==================== OLED Theme ==================== */

@@ -1,0 +1,385 @@
+--- extension-backup-20260604/popup/popup.js	2026-06-04 00:55:19
++++ extension-beta/popup/popup.js	2026-06-04 00:53:22
+@@ -184,7 +184,10 @@
+     addon_disable_warning_title: "إيقاف التنبيهات",
+     addon_disable_warning_desc: "عدم إظهار التذكير بالنسخ الاحتياطي عند حذف إضافة أو تعديل كتالوج.",
+     addon_disable_protected_title: "تحذير الإضافات المحمية",
+-    addon_disable_protected_desc: "إيقاف ظهور رسالة التحذير عند محاولة حذف إضافة أساسية/محمية."
++    addon_disable_protected_desc: "إيقاف ظهور رسالة التحذير عند محاولة حذف إضافة أساسية/محمية.",
++
++    // Stremio Web Enhancer
++    tab_webenhancer: 'ستريميو ويب'
+   },
+   en: {
+     app_title: "StremioHub",
+@@ -367,7 +370,9 @@
+     addon_disable_warning_desc: "Do not show the backup reminder when removing an addon or editing catalogs.",
+     addon_disable_protected_title: "Protected Addon Warning",
+     addon_disable_protected_desc: "Disable the warning message when attempting to delete an official/protected addon.",
+-    addon_refresh_btn: "Refresh"
++
++    // Stremio Web Enhancer
++    tab_webenhancer: 'Stremio Web'
+   }
+ };
+ 
+@@ -2201,7 +2206,7 @@
+   $('detail-title').textContent = item.name || '';
+   $('detail-year').textContent = item.year || item.releaseInfo || '';
+   $('detail-runtime').textContent = '';
+-  $('detail-rating').textContent = item.imdbRating ? `⭐ ${item.imdbRating}` : '';
++  fetchAndRenderPopupRatings(item);
+   $('detail-genres').innerHTML = '';
+   const descEl = $('detail-description');
+   descEl.textContent = '';
+@@ -2269,7 +2274,7 @@
+   $('detail-year').textContent = meta.year || libraryItem.year || '';
+   $('detail-runtime').textContent = meta.runtime || '';
+ 
+-  $('detail-rating').textContent = meta.imdbRating ? `⭐ ${meta.imdbRating}` : '';
++  fetchAndRenderPopupRatings(meta);
+ 
+   // Smart Progress Tracking & Episodes Browser
+   const progressEl = $('detail-watch-progress');
+@@ -2631,6 +2636,18 @@
+ 
+   const content = $(`settings-tab-${tabId}`);
+   if (content) content.classList.remove('hidden');
++
++  // فحص حالة الاتصال التلقائي لمنصات التقييم عند فتح هذا القسم
++  if (tabId === 'webenhancer') {
++    const sourceEl = document.getElementById('setting-ratings-source');
++    if (sourceEl) {
++      const source = sourceEl.value;
++      const keyEl = document.getElementById(`setting-${source}-key`);
++      if (keyEl && keyEl.value.trim() !== '') {
++        testApiKey(source, keyEl.value.trim());
++      }
++    }
++  }
+ }
+ 
+ // ==================== Search ====================
+@@ -3884,7 +3901,322 @@
+       } catch (e) {
+         showToast(e.message || AddonManager.t('addon_err_save'), 'error');
+       }
++    });
++  }
++
++  // ==================== Stremio Web Enhancer Settings ====================
++
++  // تحميل القيم المحفوظة
++  chrome.storage.local.get([
++    'ratingsEnabled', 'popupRatingsEnabled', 'ratingsSource',
++    'mdblistApiKey', 'publicmetadbApiKey',
++    'webCustomFont', 'webAccentColor',
++    'webOledEnabled',
++    'ratingPreferences'
++  ], (saved) => {
++    const el = (id) => document.getElementById(id);
++
++    if (el('setting-ratings-enabled'))
++      el('setting-ratings-enabled').checked = saved.ratingsEnabled !== false;
++
++    if (el('setting-popup-ratings-enabled'))
++      el('setting-popup-ratings-enabled').checked = saved.popupRatingsEnabled !== false;
++
++    if (el('setting-ratings-source') && saved.ratingsSource) {
++      el('setting-ratings-source').value = saved.ratingsSource;
++      toggleApiKeyCards(saved.ratingsSource);
++    }
++
++    if (el('setting-mdblist-key') && saved.mdblistApiKey)
++      el('setting-mdblist-key').value = saved.mdblistApiKey;
++
++    if (el('setting-publicmetadb-key') && saved.publicmetadbApiKey)
++      el('setting-publicmetadb-key').value = saved.publicmetadbApiKey;
++
++    if (el('setting-web-font') && saved.webCustomFont)
++      el('setting-web-font').value = saved.webCustomFont;
++
++    if (el('setting-web-accent') && saved.webAccentColor)
++      el('setting-web-accent').value = saved.webAccentColor;
++
++    if (el('setting-web-oled'))
++      el('setting-web-oled').checked = saved.webOledEnabled === true;
++
++    // استعادة تفضيلات المنصات
++    const defaultPrefs = { imdb: true, rt: true, rtaud: true, metacritic: true, mcuser: true, letterboxd: true, tmdb: true, trakt: true, ebert: true };
++    const prefs = saved.ratingPreferences || defaultPrefs;
++    const prefKeys = ['imdb', 'rt', 'rtaud', 'metacritic', 'mcuser', 'letterboxd', 'tmdb', 'trakt', 'ebert'];
++    prefKeys.forEach(key => {
++      const checkbox = el(`pref-${key}`);
++      if (checkbox) checkbox.checked = prefs[key] !== false;
++    });
++  });
++
++  // تفعيل/إيقاف التقييمات في صفحة Stremio Web
++  const ratingsEnabledEl = $('setting-ratings-enabled');
++  if (ratingsEnabledEl) {
++    ratingsEnabledEl.addEventListener('change', (e) => {
++      chrome.storage.local.set({ ratingsEnabled: e.target.checked });
++    });
++  }
++
++  // تفعيل/إيقاف التقييمات بداخل الإضافة (popup)
++  const popupRatingsEnabledEl = $('setting-popup-ratings-enabled');
++  if (popupRatingsEnabledEl) {
++    popupRatingsEnabledEl.addEventListener('change', (e) => {
++      chrome.storage.local.set({ popupRatingsEnabled: e.target.checked });
++    });
++  }
++
++  // تغيير المصدر
++  const ratingsSourceEl = $('setting-ratings-source');
++  if (ratingsSourceEl) {
++    ratingsSourceEl.addEventListener('change', (e) => {
++      const source = e.target.value;
++      chrome.storage.local.set({ ratingsSource: source });
++      toggleApiKeyCards(source);
++    });
++  }
++
++  // MDBList Key
++  const mdblistKeyEl = $('setting-mdblist-key');
++  if (mdblistKeyEl) {
++    let saveTimer;
++    mdblistKeyEl.addEventListener('input', (e) => {
++      clearTimeout(saveTimer);
++      saveTimer = setTimeout(() => {
++        chrome.storage.local.set({ mdblistApiKey: e.target.value.trim() });
++      }, 800); // debounce
++    });
++  }
++
++  // PublicMetaDB Key
++  const pubmetaKeyEl = $('setting-publicmetadb-key');
++  if (pubmetaKeyEl) {
++    let saveTimer;
++    pubmetaKeyEl.addEventListener('input', (e) => {
++      clearTimeout(saveTimer);
++      saveTimer = setTimeout(() => {
++        chrome.storage.local.set({ publicmetadbApiKey: e.target.value.trim() });
++      }, 800);
++    });
++  }
++
++  // زر اختبار MDBList
++  const testMdblistBtn = $('sh-test-mdblist');
++  if (testMdblistBtn) {
++    testMdblistBtn.addEventListener('click', () => {
++      const key = $('setting-mdblist-key')?.value?.trim();
++      testApiKey('mdblist', key);
++    });
++  }
++
++  // زر اختبار PublicMetaDB
++  const testPubmetaBtn = $('sh-test-publicmetadb');
++  if (testPubmetaBtn) {
++    testPubmetaBtn.addEventListener('click', () => {
++      const key = $('setting-publicmetadb-key')?.value?.trim();
++      testApiKey('publicmetadb', key);
++    });
++  }
++
++  // مستمعات تفضيلات المنصات
++  const prefKeysList = ['imdb', 'rt', 'rtaud', 'metacritic', 'mcuser', 'letterboxd', 'tmdb', 'trakt', 'ebert'];
++  prefKeysList.forEach(key => {
++    const el = $(`pref-${key}`);
++    if (el) {
++      el.addEventListener('change', () => {
++        chrome.storage.local.get('ratingPreferences', (data) => {
++          const prefs = data.ratingPreferences || { imdb: true, rt: true, rtaud: true, metacritic: true, mcuser: true, letterboxd: true, tmdb: true, trakt: true, ebert: true };
++          prefs[key] = el.checked;
++          chrome.storage.local.set({ ratingPreferences: prefs });
++        });
++      });
++    }
++  });
++
++  // اختيار الخط
++  const webFontEl = $('setting-web-font');
++  if (webFontEl) {
++    webFontEl.addEventListener('change', (e) => {
++      const font = e.target.value;
++      chrome.storage.local.set({ webCustomFont: font });
++      broadcastStyleUpdate({ font });
++    });
++  }
++
++  // تفعيل OLED
++  const webOledEl = $('setting-web-oled');
++  if (webOledEl) {
++    webOledEl.addEventListener('change', (e) => {
++      const isOled = e.target.checked;
++      chrome.storage.local.set({ webOledEnabled: isOled });
++      broadcastStyleUpdate({ oled: isOled });
+     });
+   }
++
++  // اللون المميز
++  const webAccentEl = $('setting-web-accent');
++  if (webAccentEl) {
++    webAccentEl.addEventListener('input', debounce((e) => {
++      const color = e.target.value;
++      chrome.storage.local.set({ webAccentColor: color });
++      broadcastStyleUpdate({ accentColor: color });
++    }, 300));
++  }
++
++  // إعادة تعيين اللون
++  const resetAccentBtn = $('sh-reset-accent');
++  if (resetAccentBtn) {
++    resetAccentBtn.addEventListener('click', () => {
++      chrome.storage.local.remove('webAccentColor');
++      if (webAccentEl) webAccentEl.value = '#7b5ea7';
++      broadcastStyleUpdate({ accentColor: '' });
++    });
++  }
+ }
+ 
++// ==================== Web Enhancer Helper Functions ====================
++
++function toggleApiKeyCards(source) {
++  const mdbCard     = document.getElementById('sh-mdblist-card');
++  const pubmetaCard = document.getElementById('sh-publicmetadb-card');
++  if (mdbCard)     mdbCard.classList.toggle('hidden',    source !== 'mdblist');
++  if (pubmetaCard) pubmetaCard.classList.toggle('hidden', source !== 'publicmetadb');
++}
++
++function testApiKey(source, key) {
++  const resultEl = document.getElementById('sh-api-test-result');
++  if (!key) {
++    if (resultEl) {
++      resultEl.style.display    = 'block';
++      resultEl.style.background = 'rgba(239,68,68,0.15)';
++      resultEl.style.color      = '#f87171';
++      resultEl.textContent      = 'أدخل المفتاح أولاً';
++      setTimeout(() => resultEl.style.display = 'none', 3000);
++    }
++    return;
++  }
++
++  const btn = source === 'mdblist'
++    ? document.getElementById('sh-test-mdblist')
++    : document.getElementById('sh-test-publicmetadb');
++  if (btn) { btn.textContent = '...'; btn.disabled = true; }
++
++  chrome.runtime.sendMessage({ type: 'TEST_RATINGS_API', source, apiKey: key }, (res) => {
++    if (btn) { btn.textContent = 'اختبار'; btn.disabled = false; }
++    if (!resultEl) return;
++    resultEl.style.display = 'block';
++    if (res?.ok) {
++      resultEl.style.background = 'rgba(16,185,129,0.15)';
++      resultEl.style.color      = '#34d399';
++      resultEl.textContent      = `✓ يعمل — ${res.count} مصادر تقييم`;
++    } else {
++      resultEl.style.background = 'rgba(239,68,68,0.15)';
++      resultEl.style.color      = '#f87171';
++      resultEl.textContent      = `✗ خطأ: ${res?.error || 'لا يوجد رد'}`;
++    }
++    setTimeout(() => resultEl.style.display = 'none', 5000);
++  });
++}
++
++function broadcastStyleUpdate(payload) {
++  // إرسال التحديث لكل تبويبات Stremio Web المفتوحة
++  chrome.tabs.query({ url: '*://web.stremio.com/*' }, (tabs) => {
++    tabs.forEach((tab) => {
++      chrome.tabs.sendMessage(tab.id, {
++        type: 'UPDATE_WEB_STYLE',
++        ...payload
++      }).catch(() => { /* التبويب ربما لم يُحمَّل الـ content script بعد */ });
++    });
++  });
++}
++
++function fetchAndRenderPopupRatings(item) {
++  const ratingEl = document.getElementById('detail-rating');
++  if (!ratingEl) return;
++  
++  ratingEl.textContent = item.imdbRating ? `⭐ ${item.imdbRating}` : '';
++  
++  chrome.storage.local.get(['popupRatingsEnabled', 'ratingPreferences'], (data) => {
++    if (data.popupRatingsEnabled === false) return;
++    
++    const imdbId = item._id || item.imdb_id || item.id;
++    if (!imdbId) return;
++
++    ratingEl.innerHTML = item.imdbRating 
++      ? `⭐ ${item.imdbRating} <span style="font-size:10px;opacity:0.6;margin-inline-start:5px;">جارٍ الجلب...</span>` 
++      : '<span style="font-size:10px;opacity:0.6;">جارٍ جلب التقييمات...</span>';
++
++    chrome.runtime.sendMessage({ type: 'FETCH_RATINGS', imdbId: imdbId, mediaType: item.type }, (response) => {
++      if (chrome.runtime.lastError || !response || !response.ratings) {
++        ratingEl.textContent = item.imdbRating ? `⭐ ${item.imdbRating}` : '';
++        return;
++      }
++      
++      const ratingsArray = response.ratings.ratings || [];
++      const prefs = data.ratingPreferences || { imdb: true, rt: true, rtaud: true, metacritic: true, mcuser: true, letterboxd: true, tmdb: true, trakt: true, ebert: true };
++      
++      let filtered = ratingsArray.filter(r => {
++        if (r.source === 'IMDb' && prefs.imdb === false) return false;
++        if (r.source === 'RT' && prefs.rt === false) return false;
++        if (r.source === 'RT Aud' && prefs.rtaud === false) return false;
++        if (r.source === 'Metacritic' && prefs.metacritic === false) return false;
++        if (r.source === 'MC User' && prefs.mcuser === false) return false;
++        if (r.source === 'Letterboxd' && prefs.letterboxd === false) return false;
++        if (r.source === 'TMDB' && prefs.tmdb === false) return false;
++        if (r.source === 'Trakt' && prefs.trakt === false) return false;
++        if (r.source === 'Ebert' && prefs.ebert === false) return false;
++        return true;
++      });
++
++      if (item.type === 'series') {
++        filtered = filtered.filter(r => r.source !== 'Letterboxd');
++      }
++
++      if (filtered.length === 0) {
++        ratingEl.textContent = item.imdbRating ? `⭐ ${item.imdbRating}` : '';
++        return;
++      }
++
++      const SVG_MAP = {
++        'IMDb': '<svg viewBox="0 0 512 512" height="13" width="13"><rect width="512" height="512" rx="15%" fill="#f5c518"/><path d="M104 328V184H64v144zM189 184l-9 67-5-36-5-31h-50v144h34v-95l14 95h25l13-97v97h34V184zM256 328V184h62c15 0 26 11 26 25v94c0 14-11 25-26 25zm47-118l-9-1v94c5 0 9-1 10-3 2-2 2-8 2-18v-56-12l-3-4zM419 220h3c14 0 26 11 26 25v58c0 14-12 25-26 25h-3c-8 0-16-4-21-11l-2 9h-36V184h38v46c5-6 13-10 21-10zm-8 70v-34l-1-11c-1-2-4-3-6-3s-5 1-6 3v57c1 2 4 3 6 3s6-1 6-3l1-12z" fill="#000000"/></svg>',
++        'RT': '<svg viewBox="0 0 24 24" width="13" height="13" fill="#fa320a"><path d="M5.866 0L4.335 1.262l2.082 1.8c-2.629-.989-4.842 1.4-5.012 2.338 1.384-.323 2.24-.422 3.344-.335-7.042 4.634-4.978 13.148-1.434 16.094 5.784 4.612 13.77 3.202 17.91-1.316C27.26 13.363 22.993.65 10.86 2.766c.107-1.17.633-1.503 1.243-1.602-.89-1.493-3.67-.734-4.556 1.374C7.52 2.602 5.866 0 5.866 0zM4.422 7.217H6.9c2.673 0 2.898.012 3.55.202 1.06.307 1.868.973 2.313 1.904.05.106.092.206.13.305l7.623.008.027 2.912-2.745-.024v7.549l-2.982-.016v-7.522l-2.127.016a2.92 2.92 0 0 1-1.056 1.134c-.287.176-.3.19-.254.264.127.2 2.125 3.642 2.125 3.659l-3.39.019-2.013-3.376c-.034-.047-.122-.068-.344-.084l-.297-.02.037 3.48-3.075-.038zm3.016 2.288l.024.338c.014.186.024.729.024 1.206v.867l.582-.025c.32-.013.695-.049.833-.078.694-.146 1.048-.478 1.087-1.018.027-.378-.063-.636-.303-.87-.318-.309-.761-.416-1.733-.418Z"/></svg>',
++        'Trakt': '<svg viewBox="0 0 24 24" width="13" height="13" fill="#ed1c24"><path d="m15.082 15.107-.73-.73 9.578-9.583a4.499 4.499 0 0 0-.115-.575L13.662 14.382l1.08 1.08-.73.73-1.81-1.81L23.422 3.144c-.075-.15-.155-.3-.25-.44L11.508 14.377l2.154 2.155-.73.73-7.193-7.199.73-.73 4.309 4.31L22.546 1.86A5.618 5.618 0 0 0 18.362 0H5.635A5.637 5.637 0 0 0 0 5.634V18.37A5.632 5.632 0 0 0 5.635 24h12.732C21.477 24 24 21.48 24 18.37V6.19l-8.913 8.918zm-4.314-2.155L6.814 8.988l.73-.73 3.954 3.96zm1.075-1.084-3.954-3.96.73-.73 3.959 3.96zm9.853 5.688a4.141 4.141 0 0 1-4.14 4.14H6.438a4.144 4.144 0 0 1-4.139-4.14V6.438A4.141 4.141 0 0 1 6.44 2.3h10.387v1.04H6.438c-1.71 0-3.099 1.39-3.099 3.1V17.55c0 1.71 1.39 3.105 3.1 3.105h11.117c1.71 0 3.1-1.395 3.1-3.105v-1.754h1.04v1.754z"/></svg>',
++        'Letterboxd': '<svg viewBox="0 0 24 24" width="13" height="13" fill="#00e054"><path d="M8.224 14.352a4.447 4.447 0 0 1-3.775 2.092C1.992 16.444 0 14.454 0 12s1.992-4.444 4.45-4.444c1.592 0 2.988.836 3.774 2.092-.427.682-.673 1.488-.673 2.352s.246 1.67.673 2.352zM15.101 12c0-.864.247-1.67.674-2.352-.786-1.256-2.183-2.092-3.775-2.092s-2.989.836-3.775 2.092c.427.682.674 1.488.674 2.352s-.247 1.67-.674 2.352c.786 1.256 2.183 2.092 3.775 2.092s2.989-.836 3.775-2.092A4.42 4.42 0 0 1 15.1 12zm4.45-4.444a4.447 4.447 0 0 0-3.775 2.092c.427.682.673 1.488.673 2.352s-.246 1.67-.673 2.352a4.447 4.447 0 0 0 3.775 2.092C22.008 16.444 24 14.454 24 12s-1.992-4.444-4.45-4.444z"/></svg>',
++        'TMDB': '<svg viewBox="0 0 38 14" height="13" width="35"><text x="0" y="11" font-family="-apple-system, system-ui, sans-serif" font-weight="900" font-size="12" fill="#01b4e4">TMDB</text></svg>',
++        'Metacritic': '<svg viewBox="0 0 24 24" width="13" height="13" fill="#ffcc33"><path d="M11.99 0A12 12 0 1 0 24 12v-.014A12 12 0 0 0 11.99 0Zm-.055 2.564a9.399 9.399 0 0 1 9.407 9.389v.01a9.399 9.399 0 1 1-9.408-9.399Zm-1.61 17.198 2.046-2.046-3.94-3.94c-.165-.166-.345-.373-.442-.608-.221-.47-.318-1.203.221-1.742.664-.664 1.548-.387 2.406.47l3.788 3.788 2.046-2.046-3.954-3.954a2.48 2.48 0 0 1-.456-.622c-.263-.539-.25-1.216.235-1.7.677-.678 1.562-.429 2.544.553l3.677 3.677 2.046-2.046-3.982-3.982c-2.018-2.018-3.912-1.949-5.212-.65-.498.499-.802 1.024-.954 1.618a4.026 4.026 0 0 0-.055 1.686l-.027.028c-.996-.414-2.13-.166-3 .705-1.162 1.161-1.12 2.392-.982 3.11l-.042.043-1.009-.816-1.77 1.77a64.1 64.1 0 0 1 2.213 2.1z"/></svg>',
++        'MC User': '<svg viewBox="0 0 24 24" width="13" height="13" fill="#ffcc33"><path d="M11.99 0A12 12 0 1 0 24 12v-.014A12 12 0 0 0 11.99 0Zm-.055 2.564a9.399 9.399 0 0 1 9.407 9.389v.01a9.399 9.399 0 1 1-9.408-9.399Zm-1.61 17.198 2.046-2.046-3.94-3.94c-.165-.166-.345-.373-.442-.608-.221-.47-.318-1.203.221-1.742.664-.664 1.548-.387 2.406.47l3.788 3.788 2.046-2.046-3.954-3.954a2.48 2.48 0 0 1-.456-.622c-.263-.539-.25-1.216.235-1.7.677-.678 1.562-.429 2.544.553l3.677 3.677 2.046-2.046-3.982-3.982c-2.018-2.018-3.912-1.949-5.212-.65-.498.499-.802 1.024-.954 1.618a4.026 4.026 0 0 0-.055 1.686l-.027.028c-.996-.414-2.13-.166-3 .705-1.162 1.161-1.12 2.392-.982 3.11l-.042.043-1.009-.816-1.77 1.77a64.1 64.1 0 0 1 2.213 2.1z"/></svg>',
++        'Ebert': '<svg viewBox="0 0 24 24" height="13" width="13" fill="#ffffff"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>'
++      };
++
++      const chips = filtered.map(r => {
++        const pct = r.max === 10 ? r.score * 10 : r.max === 5 ? r.score * 20 : r.score;
++        const color = pct >= 70 ? '#34d399' : pct >= 50 ? '#fbbf24' : '#f87171';
++        const display = r.max === 5 ? `${r.score}/5` : r.max === 10 ? `${r.score}/10` : `${r.score}%`;
++        let scoreText = display;
++        if (r.source === 'MC User' || r.source === 'RT Aud') {
++          const label = r.source === 'MC User' ? 'User' : 'Aud';
++          scoreText += `<span style="font-size:9px; opacity:0.65; margin-inline-start:3px; font-weight:500; text-transform:uppercase;">${label}</span>`;
++        }
++        const iconContent = SVG_MAP[r.source] || r.icon;
++        return `
++          <span class="popup-rating-chip" title="${r.source}: ${display}" style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:3px 10px;font-size:12px;cursor:default;direction:ltr;">
++            <span class="icon" style="display:flex;align-items:center;height:14px;">${iconContent}</span>
++            <span class="score" style="color:${color};font-weight:700;letter-spacing:0.3px;">${scoreText}</span>
++          </span>
++        `;
++      }).join('');
++
++      ratingEl.innerHTML = chips;
++      ratingEl.style.display = 'inline-flex';
++      ratingEl.style.alignItems = 'center';
++      ratingEl.style.gap = '6px';
++      ratingEl.style.flexWrap = 'wrap';
++      ratingEl.style.background = 'transparent';
++      ratingEl.style.border = 'none';
++      ratingEl.style.padding = '0';
++    });
++  });
++}
++

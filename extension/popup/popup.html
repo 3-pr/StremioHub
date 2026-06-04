@@ -158,9 +158,11 @@
         <nav class="settings-tabs">
           <div class="settings-tab-indicator"></div>
           <button class="settings-tab-btn active" data-settings-tab="general" data-i18n="tab_general">عام</button>
+          <button class="settings-tab-btn" data-settings-tab="appearance" data-i18n="tab_appearance">الجماليات</button>
           <button class="settings-tab-btn" data-settings-tab="library" data-i18n="tab_library">المكتبة</button>
           <button class="settings-tab-btn" data-settings-tab="websites" data-i18n="tab_websites">المواقع</button>
           <button class="settings-tab-btn" data-settings-tab="addons" data-i18n="tab_addons">الإضافات</button>
+          <button class="settings-tab-btn" data-settings-tab="webenhancer" data-i18n="tab_webenhancer">ستريميو ويب</button>
         </nav>
 
         <div class="settings-list settings-tab-content active" id="settings-tab-general">
@@ -175,6 +177,33 @@
             </select>
           </div>
 
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="detail_style_title">شكل نافذة التفاصيل</h4>
+              <p data-i18n="detail_style_desc">كيف تفضل عرض تفاصيل الأعمال (في شاشة كاملة أم بطاقة عائمة)؟</p>
+            </div>
+            <select id="setting-detail-mode" class="size-select-modern">
+              <option value="fullscreen" data-i18n="style_fullscreen">شاشة كاملة</option>
+              <option value="card" data-i18n="style_card">بطاقة عائمة</option>
+            </select>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="open_method_title">طريقة الفتح في Stremio</h4>
+              <p data-i18n="open_method_desc">كيف تفضل أن يتم فتح الأعمال عند اختيار "فتح"؟</p>
+            </div>
+            <select id="setting-open-method" class="size-select-modern">
+              <option value="web" data-i18n="open_web">Stremio Web (المتصفح)</option>
+              <option value="app" data-i18n="open_app">تطبيق Stremio</option>
+            </select>
+          </div>
+
+
+        </div>
+
+        <div class="settings-list settings-tab-content hidden" id="settings-tab-appearance">
           <div class="setting-card">
             <div class="setting-info">
               <h4 data-i18n="size_title">حجم الواجهة</h4>
@@ -200,27 +229,17 @@
 
           <div class="setting-card">
             <div class="setting-info">
-              <h4 data-i18n="detail_style_title">شكل نافذة التفاصيل</h4>
-              <p data-i18n="detail_style_desc">كيف تفضل عرض تفاصيل الأعمال (في شاشة كاملة أم بطاقة عائمة)؟</p>
+              <h4 data-i18n="anim_title">تأثير البطاقات</h4>
+              <p data-i18n="anim_desc">حركة دخول الأعمال عند فتح الإضافة.</p>
             </div>
-            <select id="setting-detail-mode" class="size-select-modern">
-              <option value="fullscreen" data-i18n="style_fullscreen">شاشة كاملة</option>
-              <option value="card" data-i18n="style_card">بطاقة عائمة</option>
+            <select id="setting-card-anim" class="size-select-modern">
+              <option value="spring" data-i18n="anim_spring">الانبثاق المرن</option>
+              <option value="domino" data-i18n="anim_domino">الدومينو</option>
+              <option value="float" data-i18n="anim_float">الصعود والتوهج</option>
+              <option value="flip" data-i18n="anim_flip">الكشف 3D</option>
+              <option value="none" data-i18n="anim_none">بدون تأثير (إلغاء)</option>
             </select>
           </div>
-
-          <div class="setting-card">
-            <div class="setting-info">
-              <h4 data-i18n="open_method_title">طريقة الفتح في Stremio</h4>
-              <p data-i18n="open_method_desc">كيف تفضل أن يتم فتح الأعمال عند اختيار "فتح"؟</p>
-            </div>
-            <select id="setting-open-method" class="size-select-modern">
-              <option value="web" data-i18n="open_web">Stremio Web (المتصفح)</option>
-              <option value="app" data-i18n="open_app">تطبيق Stremio</option>
-            </select>
-          </div>
-
-
         </div>
 
         <div class="settings-list settings-tab-content hidden" id="settings-tab-library">
@@ -473,6 +492,211 @@
 
         </div>
 
+        <!-- ==================== Stremio Web Enhancer Tab ==================== -->
+        <div class="settings-list settings-tab-content hidden" id="settings-tab-webenhancer">
+
+          <!-- قسم: تقييمات المجتمع -->
+          <div class="settings-group-title" data-i18n="community_ratings_title">تقييمات المجتمع</div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="enable_ratings_title">تفعيل التقييمات</h4>
+              <p data-i18n="enable_ratings_desc">تظهر تقييمات RT وMetacritic وLetterboxd وغيرها بجانب شارة IMDb عند فتح أي عمل.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-ratings-enabled" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="popup_ratings_title">تقييمات المجتمع في الإضافة</h4>
+              <p data-i18n="popup_ratings_desc">عرض تقييمات المجتمع داخل صفحة تفاصيل العمل عند النقر عليه في قسم "الأعمال".</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-popup-ratings-enabled" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card" id="sh-ratings-source-card">
+            <div class="setting-info">
+              <h4 data-i18n="ratings_source_title">مصدر التقييمات</h4>
+              <p data-i18n="ratings_source_desc">اختر الخدمة التي تجلب منها التقييمات. كلاهما يحتاج مفتاح API مجاني.</p>
+            </div>
+            <select id="setting-ratings-source" class="size-select-modern">
+              <option value="mdblist" data-i18n="source_mdblist">MDBList (موصى به)</option>
+              <option value="publicmetadb">PublicMetaDB</option>
+            </select>
+          </div>
+
+          <!-- MDBList key -->
+          <div class="setting-card" id="sh-mdblist-card">
+            <div class="setting-info">
+              <h4>MDBList API Key</h4>
+              <p data-i18n="mdblist_key_desc">
+                احصل على مفتاح مجاني من
+                <a href="https://mdblist.com/api/" target="_blank" style="color:var(--accent-light)">mdblist.com/api</a>
+              </p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="password"
+                id="setting-mdblist-key"
+                class="size-select-modern"
+                data-i18n-placeholder="api_key_placeholder"
+                placeholder="أدخل المفتاح هنا..."
+                style="width:170px;font-size:12px;direction:ltr;">
+              <button id="sh-test-mdblist" class="addon-action-btn backup-btn" data-i18n="test_api_btn">اختبار</button>
+            </div>
+          </div>
+
+          <!-- PublicMetaDB key -->
+          <div class="setting-card hidden" id="sh-publicmetadb-card">
+            <div class="setting-info">
+              <h4>PublicMetaDB API Key</h4>
+              <p data-i18n="publicmetadb_key_desc">
+                أنشئ مفتاحاً من
+                <a href="https://publicmetadb.com" target="_blank" style="color:var(--accent-light)">publicmetadb.com</a>
+                ← قسم Developer
+              </p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="password"
+                id="setting-publicmetadb-key"
+                class="size-select-modern"
+                data-i18n-placeholder="api_key_placeholder"
+                placeholder="أدخل المفتاح هنا..."
+                style="width:170px;font-size:12px;direction:ltr;">
+              <button id="sh-test-publicmetadb" class="addon-action-btn backup-btn" data-i18n="test_api_btn">اختبار</button>
+            </div>
+          </div>
+
+          <!-- نتيجة الاختبار -->
+          <div id="sh-api-test-result"
+            style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;
+                   margin-top:-8px;transition:all 0.3s; margin-bottom: 12px;">
+          </div>
+
+          <!-- التحكم بالمنصات -->
+          <div class="setting-card sites-card" id="sh-ratings-filters-card">
+            <div class="setting-info" style="width: 100%; margin-bottom: 15px;">
+              <h4 data-i18n="platforms_filter_title">تخصيص منصات التقييم</h4>
+              <p data-i18n="platforms_filter_desc">اختر المنصات التي ترغب بظهور تقييماتها بجانب العمل.</p>
+            </div>
+            <div class="sites-list">
+              <div class="site-toggle">
+                <span>IMDb</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-imdb" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span data-i18n="rating_rt_critics">Rotten Tomatoes (النقاد)</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-rt" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span data-i18n="rating_rt_audience">Rotten Tomatoes (الجمهور)</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-rtaud" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span data-i18n="rating_meta_critics">Metacritic (النقاد)</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-metacritic" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span data-i18n="rating_meta_audience">Metacritic (الجمهور)</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-mcuser" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span>Letterboxd</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-letterboxd" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span>TMDB</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-tmdb" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span>Trakt</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-trakt" checked><span class="slider"></span></label>
+              </div>
+              <div class="site-toggle">
+                <span>Roger Ebert</span>
+                <label class="toggle-switch"><input type="checkbox" id="pref-ebert" checked><span class="slider"></span></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- قسم: التخصيص البصري -->
+          <div class="settings-group-title" style="margin-top:4px;" data-i18n="web_appearance_title">تخصيص مظهر Stremio Web</div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="stremio_web_font_title">الخط المخصص</h4>
+              <p data-i18n="stremio_web_font_desc">يُطبَّق فوراً على Stremio Web بعد الاختيار.</p>
+            </div>
+            <select id="setting-web-font" class="size-select-modern">
+              <option value="" data-i18n="font_default">افتراضي (بدون تغيير)</option>
+              <optgroup label="Arabic Fonts (عربي)">
+                <option value="Thmanyah">ثمانية</option>
+                <option value="Cairo">Cairo</option>
+                <option value="Tajawal">Tajawal</option>
+                <option value="IBM Plex Sans Arabic">IBM Plex Arabic</option>
+              </optgroup>
+              <optgroup label="English Fonts">
+                <option value="Inter">Inter (Modern)</option>
+                <option value="Poppins">Poppins (Geometric)</option>
+                <option value="Montserrat">Montserrat (Classic)</option>
+                <option value="Outfit">Outfit (Clean)</option>
+                <option value="Ubuntu">Ubuntu</option>
+                <option value="Roboto">Roboto</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info">
+              <h4 data-i18n="stremio_web_oled_title">ألوان OLED (أسود عميق)</h4>
+              <p data-i18n="stremio_web_oled_desc">استبدال اللون الرمادي بالأسود الحقيقي للحفاظ على الشاشة.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-web-oled">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-info" style="width:100%; margin-bottom:12px;">
+              <h4 data-i18n="stremio_web_accent_title">لون مميز مخصص</h4>
+              <p data-i18n="stremio_web_accent_desc">يغير اللون البنفسجي الافتراضي في واجهة Stremio Web.</p>
+            </div>
+            
+            <div class="color-presets" style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; padding:0 2px;">
+               <div class="color-swatch active" data-color="#7b5ea7" style="background:#7b5ea7" title="Default Purple"></div>
+               <div class="color-swatch" data-color="#E50914" style="background:#E50914" title="Red"></div>
+               <div class="color-swatch" data-color="#1DB954" style="background:#1DB954" title="Green"></div>
+               <div class="color-swatch" data-color="#01B4E4" style="background:#01B4E4" title="Blue"></div>
+               <div class="color-swatch" data-color="#F5C518" style="background:#F5C518" title="Yellow"></div>
+               <div class="color-swatch" data-color="#FF3366" style="background:#FF3366" title="Pink"></div>
+               <div class="color-swatch" data-color="#FF8C00" style="background:#FF8C00" title="Orange"></div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input type="color"
+                id="setting-web-accent"
+                value="#7b5ea7"
+                style="width:36px;height:36px;border:1px solid var(--glass-border);
+                       border-radius:8px;cursor:pointer;background:transparent;padding:0;">
+              
+              <input type="text" id="setting-web-accent-text" class="modern-input" style="width:90px; padding:8px; font-family:monospace; font-size:13px; text-transform:uppercase; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:white;" value="#7b5ea7" maxlength="7">
+
+              <button id="sh-reset-accent"
+                class="addon-action-btn"
+                style="background:transparent;border-color:var(--glass-border);color:var(--text-muted); padding: 8px 12px;">
+                <span data-i18n="btn_reset">إعادة تعيين</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
         <div class="developer-credits">
           <span data-i18n="dev_credits">صُنع من مُشاهد، إلى كل المشاهدين 🍿</span> <a href="https://3-pr.github.io/" target="_blank" class="dev-link">Yasser</a>
           <div style="margin-top: 8px;">
@@ -670,7 +894,7 @@
               <span id="detail-runtime" class="meta-chip"></span>
               <span id="detail-rating" class="rating-badge"></span>
             </div>
-            <div id="detail-watch-progress" class="genre-tags" style="margin-top: 8px;"></div>
+            <div id="detail-watch-progress" class="watch-progress-tags"></div>
             <div id="detail-genres" class="genre-tags"></div>
           </div>
         </div>
