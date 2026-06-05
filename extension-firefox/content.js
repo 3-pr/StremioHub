@@ -524,7 +524,7 @@
       justify-content: center;
       gap: 8px;
       transition: background 0.2s, transform 0.2s;
-      font-family: Roboto, Helvetica, Arial, sans-serif;
+      font-family: ${currentLang === 'ar' ? "'Thmanyah', system-ui, -apple-system, sans-serif !important" : "Roboto, Helvetica, Arial, sans-serif"};
     `;
 
     stremioButton.addEventListener('mouseenter', () => {
