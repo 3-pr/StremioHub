@@ -6,6 +6,61 @@
   const hostname = window.location.hostname;
   const href = window.location.href;
 
+  let currentLang = 'ar';
+
+  const getBtnText = (action, hasPlayIcon = false) => {
+    const play = hasPlayIcon ? '▶ ' : '';
+    if (currentLang === 'ar') {
+      return action === 'open' ? play + 'فتح في ستريميو' : play + 'حفظ في ستريميو';
+    }
+    return action === 'open' ? play + 'Open in Stremio' : play + 'Save to Stremio';
+  };
+
+  const getStatusText = (status) => {
+    if (currentLang === 'ar') {
+      if (status === 'opening') return 'جارِ الفتح...';
+      if (status === 'opened') return 'تم الفتح ✓';
+      if (status === 'saving') return 'جارِ الحفظ...';
+      if (status === 'saved') return 'تم الحفظ بنجاح ✓';
+      if (status === 'saved_short') return 'تم الحفظ!';
+      if (status === 'loading') return 'جارِ البحث...';
+      if (status === 'error') return 'خطأ';
+      if (status === 'failed') return 'فشل';
+    }
+    if (status === 'opening') return 'Opening...';
+    if (status === 'opened') return 'Opened ✓';
+    if (status === 'saving') return 'Saving...';
+    if (status === 'saved') return 'Saved to Stremio ✓';
+    if (status === 'saved_short') return 'Saved!';
+    if (status === 'loading') return 'Loading...';
+    if (status === 'error') return 'Error';
+    if (status === 'failed') return 'Failed';
+  };
+
+  const injectFontsIfNeeded = () => {
+    if (!document.getElementById('stremio-hub-fonts')) {
+      const fontStyle = document.createElement('style');
+      fontStyle.id = 'stremio-hub-fonts';
+      fontStyle.textContent = `
+        @font-face {
+          font-family: 'Thmanyah';
+          src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Regular.woff2')}') format('woff2');
+          font-weight: normal;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'Thmanyah';
+          src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Bold.woff2')}') format('woff2');
+          font-weight: bold;
+          font-style: normal;
+        }
+        .stremio-ar, .stremio-ar * { font-family: 'Thmanyah', system-ui, -apple-system, sans-serif !important; }
+      `;
+      document.head.appendChild(fontStyle);
+    }
+  };
+
+
   // ==================== Site Detectors ====================
 
   const detectors = {
@@ -44,7 +99,21 @@
   async function init() {
     if (document.getElementById('stremio-hub-btn') || document.getElementById('stremio-google-btn')) return;
 
-    const stored = await chrome.storage.local.get(['sitesEnabled', 'siteActions']);
+    let stored;
+    try {
+      stored = await chrome.storage.local.get(['sitesEnabled', 'siteActions', 'language']);
+    } catch (err) {
+      if (err.message && err.message.includes('Extension context invalidated')) {
+        console.warn('StremioHub: Extension context invalidated. Please reload the page.');
+        if (typeof observer !== 'undefined' && observer) observer.disconnect();
+        return;
+      }
+      console.error('StremioHub Init Error:', err);
+      return;
+    }
+
+    currentLang = stored.language || 'ar';
+    if (currentLang === 'ar') injectFontsIfNeeded();
     const sitesEnabled = stored.sitesEnabled || {
       google: true, letterboxd: true, imdb: true, tmdb: true, rt: true, metacritic: true, trakt: true
     };
@@ -103,13 +172,13 @@
     const imdbId = imdbIdMatch ? imdbIdMatch[1] : null;
 
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
-    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    const btnText = getBtnText(action);
 
     const handleStremioClick = async (e, statusSpan, feedbackCallback) => {
       e.preventDefault();
 
       if (action === 'open') {
-        if (statusSpan) statusSpan.textContent = 'Opening...';
+        if (statusSpan) statusSpan.textContent = getStatusText('opening');
         chrome.runtime.sendMessage({
           type: 'OPEN_IN_STREMIO_DIRECT',
           query: title, year, mediaType: type, imdbId
@@ -118,9 +187,9 @@
           if (statusSpan) {
             if (res && res.success) {
               if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-              statusSpan.textContent = 'Opened ✓';
+              statusSpan.textContent = getStatusText('opened');
             } else {
-              statusSpan.textContent = 'Error';
+              statusSpan.textContent = getStatusText('error');
             }
             setTimeout(() => {
               statusSpan.textContent = btnText;
@@ -135,7 +204,7 @@
       const autoSave = stored.autoSave !== false;
 
       if (autoSave) {
-        if (statusSpan) statusSpan.textContent = 'Saving...';
+        if (statusSpan) statusSpan.textContent = getStatusText('saving');
         chrome.runtime.sendMessage({
           type: 'ADD_TO_LIBRARY',
           query: title, year, mediaType: type, imdbId
@@ -144,10 +213,10 @@
           if (statusSpan) {
             if (res && res.success) {
               if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-              statusSpan.textContent = 'Saved!';
+              statusSpan.textContent = getStatusText('saved_short');
               statusSpan.style.color = '#34d399';
             } else {
-              statusSpan.textContent = 'Error';
+              statusSpan.textContent = getStatusText('error');
               statusSpan.style.color = '#f87171';
             }
             setTimeout(() => {
@@ -157,7 +226,7 @@
           }
         });
       } else {
-        if (statusSpan) statusSpan.textContent = 'Loading...';
+        if (statusSpan) statusSpan.textContent = getStatusText('loading');
         chrome.runtime.sendMessage({
           type: 'SEARCH_IN_POPUP',
           query: title, year, mediaType: type
@@ -178,6 +247,7 @@
       const mainTag = watchNowMain.querySelector("a[ping]");
       if (mainTag) {
         mainTag.id = 'stremio-google-btn';
+        if (currentLang === 'ar') mainTag.classList.add('stremio-ar');
         mainTag.href = '#';
         const img = mainTag.querySelector("img");
         if (img) {
@@ -189,7 +259,7 @@
         const textDiv = mainTag.querySelector('div:nth-child(2)');
         if (textDiv) {
           if (textDiv.firstChild) {
-            textDiv.firstChild.textContent = 'Stremio';
+            textDiv.firstChild.textContent = currentLang === 'ar' ? 'ستريميو' : 'Stremio';
             textDiv.firstChild.style.color = '#a78bfa';
             textDiv.firstChild.style.fontWeight = '600';
           }
@@ -228,11 +298,12 @@
         let watchNowEle = firstChild.firstElementChild;
         if (watchNowEle) {
           watchNowEle.id = 'stremio-google-btn';
+          if (currentLang === 'ar') watchNowEle.classList.add('stremio-ar');
           watchNowEle.innerHTML = `
              <a class="stremio-cta__href" href='#' style="display: flex; align-items: center; padding: 10px 18px; background: rgba(145, 109, 213, 0.1); border: 1px solid rgba(145, 109, 213, 0.4); border-radius: 24px; text-decoration: none; margin-bottom: 12px; transition: all 0.2s ease;">
                <img style='width: 32px; height: 32px; border-radius: 50%; margin-right: 14px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.2);' src="${iconUrl}" />
                <div style="display: flex; flex-direction: column; justify-content: center;">
-                 <div style="font-weight: 600; color: #a78bfa; font-family: Roboto, Arial, sans-serif; font-size: 15px; line-height: 1.2;">Stremio</div>
+                 <div style="font-weight: 600; color: #a78bfa; font-family: Roboto, Arial, sans-serif; font-size: 15px; line-height: 1.2;">${currentLang === 'ar' ? 'ستريميو' : 'Stremio'}</div>
                  <div class="stremio-status" style="font-size: 13px; font-weight: 500; color: inherit; opacity: 0.8; font-family: Roboto, Arial, sans-serif; margin-top: 2px;">${btnText}</div>
                </div>
              </a>`;
@@ -274,6 +345,7 @@
       // Create a floating action button (FAB) as fallback
       const fabStremio = document.createElement("a");
       fabStremio.id = "stremio-google-btn";
+      if (currentLang === 'ar') fabStremio.classList.add('stremio-ar');
       fabStremio.href = "#";
       fabStremio.innerHTML = `<img style='width: 48px;height: 48px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.3s ease;' src="${iconUrl}" />`;
       fabStremio.style.cssText = "position: fixed; bottom: 30px; right: 30px; z-index: 999999; cursor: pointer; transition: 0.2s;";
@@ -319,10 +391,11 @@
 
     if (!title) return;
 
-    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    const btnText = getBtnText(action);
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
     const stremioButton = document.createElement('button');
     stremioButton.id = 'stremio-hub-btn';
+    if (currentLang === 'ar') stremioButton.classList.add('stremio-ar');
     stremioButton.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
         <img title="Stremio" style="width: 16px; height: 16px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" src="${iconUrl}"/>
@@ -359,13 +432,13 @@
       const span = stremioButton.querySelector('span');
 
       if (action === 'open') {
-        span.textContent = 'Opening...';
+        span.textContent = getStatusText('opening');
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'Opened ✓';
+            span.textContent = getStatusText('opened');
           } else {
-            span.textContent = 'Failed';
+            span.textContent = getStatusText('failed');
           }
           setTimeout(() => span.textContent = btnText, 3000);
         });
@@ -376,16 +449,16 @@
       const autoSave = stored.autoSave !== false;
 
       if (autoSave) {
-        span.textContent = 'Saving...';
+        span.textContent = getStatusText('saving');
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'Saved to Stremio ✓';
+            span.textContent = getStatusText('saved');
             stremioButton.style.borderColor = '#34d399';
             stremioButton.style.backgroundColor = 'rgba(52, 211, 153, 0.15)';
             span.style.color = '#34d399';
           } else {
-            span.textContent = 'Failed';
+            span.textContent = getStatusText('failed');
           }
           setTimeout(() => {
             span.textContent = btnText;
@@ -395,7 +468,7 @@
           }, 3000);
         });
       } else {
-        span.textContent = 'Loading...';
+        span.textContent = getStatusText('loading');
         chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
         setTimeout(() => {
           span.textContent = btnText;
@@ -425,11 +498,13 @@
 
     if (!title) return;
 
-    const btnText = action === 'open' ? '▶ Open in Stremio' : '▶ Save to Stremio';
+    const btnText = getBtnText(action, true);
 
     const stremioButton = document.createElement('button');
     stremioButton.id = 'stremio-hub-btn';
+    if (currentLang === 'ar') stremioButton.classList.add('stremio-ar');
     stremioButton.className = 'circular-strmio-button';
+    if (currentLang === 'ar') stremioButton.style.fontFamily = "'Thmanyah', system-ui, -apple-system, sans-serif";
     stremioButton.innerHTML = btnText;
 
     // Style to look native but distinct (Stremio purple)
@@ -467,13 +542,13 @@
       const imdbId = imdbIdMatch ? imdbIdMatch[1] : null;
 
       if (action === 'open') {
-        stremioButton.innerHTML = 'Opening...';
+        stremioButton.innerHTML = getStatusText('opening');
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type, imdbId }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            stremioButton.innerHTML = 'Opened ✓';
+            stremioButton.innerHTML = getStatusText('opened');
           } else {
-            stremioButton.innerHTML = 'Failed';
+            stremioButton.innerHTML = getStatusText('failed');
           }
           setTimeout(() => stremioButton.innerHTML = btnText, 3000);
         });
@@ -484,14 +559,14 @@
       const autoSave = stored.autoSave !== false;
 
       if (autoSave) {
-        stremioButton.innerHTML = 'Saving...';
+        stremioButton.innerHTML = getStatusText('saving');
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type, imdbId }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            stremioButton.innerHTML = 'Saved ✓';
+            stremioButton.innerHTML = getStatusText('saved');
             stremioButton.style.background = '#34d399';
           } else {
-            stremioButton.innerHTML = 'Failed';
+            stremioButton.innerHTML = getStatusText('failed');
             stremioButton.style.background = '#f87171';
           }
           setTimeout(() => {
@@ -500,7 +575,7 @@
           }, 3000);
         });
       } else {
-        stremioButton.innerHTML = 'Loading...';
+        stremioButton.innerHTML = getStatusText('loading');
         chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
         setTimeout(() => {
           stremioButton.innerHTML = btnText;
@@ -527,13 +602,21 @@
 
     if (!title) return;
 
-    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    const btnText = getBtnText(action);
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
     const stremioButton = document.createElement('a');
     stremioButton.id = 'stremio-hub-btn';
+    if (currentLang === 'ar') stremioButton.classList.add('stremio-ar');
     stremioButton.title = btnText;
     stremioButton.innerHTML = `<img alt="${btnText}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; transition: all 0.3s ease;" src="${iconUrl}"/>`;
-    stremioButton.setAttribute('style', 'margin-left: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; border-radius: 50%;');
+    
+    if (currentLang === 'ar') {
+      stremioButton.setAttribute('style', 'margin-left: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; border-radius: 50%;');
+      stremioButton.style.fontFamily = "'Thmanyah', system-ui, -apple-system, sans-serif";
+    } else {
+      stremioButton.setAttribute('style', 'margin-left: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; border-radius: 50%;');
+    }
+
 
     const img = stremioButton.querySelector('img');
 
@@ -592,12 +675,20 @@
 
     if (!title) return;
 
-    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    const btnText = getBtnText(action);
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
     const stremioButton = document.createElement('button');
     stremioButton.id = 'stremio-hub-btn';
+    if (currentLang === 'ar') stremioButton.classList.add('stremio-ar');
     stremioButton.innerHTML = `<img title="StremioHub" style="float: left;width: 30px;height: 30px;border-radius:6px;object-fit:cover;" src="${iconUrl}"/><span style="font-weight: bold;font-size: 14px;margin-top: 4px;margin-left: 10px;padding: 0;float: left;color: #7b5ea7;">${btnText}</span>`;
-    stremioButton.setAttribute('style', 'height:50px;margin-right: 10px;text-align: left;margin-bottom: 10px;background-color: white; border: 1px solid #7b5ea7; border-radius: 30px; padding: 10px 20px; cursor: pointer; display: flex; align-items: center; transition: 0.2s;');
+    
+    if (currentLang === 'ar') {
+      stremioButton.setAttribute('style', 'height:50px;margin-right: 10px;text-align: left;margin-bottom: 10px;background-color: white; border: 1px solid #7b5ea7; border-radius: 30px; padding: 10px 20px; cursor: pointer; display: flex; align-items: center; transition: 0.2s;');
+      stremioButton.style.fontFamily = "'Thmanyah', system-ui, -apple-system, sans-serif";
+    } else {
+      stremioButton.setAttribute('style', 'height:50px;margin-right: 10px;text-align: left;margin-bottom: 10px;background-color: white; border: 1px solid #7b5ea7; border-radius: 30px; padding: 10px 20px; cursor: pointer; display: flex; align-items: center; transition: 0.2s;');
+    }
+
 
     stremioButton.addEventListener('mouseenter', () => stremioButton.style.backgroundColor = '#f3e8ff');
     stremioButton.addEventListener('mouseleave', () => stremioButton.style.backgroundColor = 'white');
@@ -607,13 +698,13 @@
       const span = stremioButton.querySelector('span');
 
       if (action === 'open') {
-        span.textContent = 'Opening...';
+        span.textContent = getStatusText('opening');
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'Opened ✓';
+            span.textContent = getStatusText('opened');
           } else {
-            span.textContent = 'Failed';
+            span.textContent = getStatusText('failed');
           }
           setTimeout(() => span.textContent = btnText, 3000);
         });
@@ -624,15 +715,15 @@
       const autoSave = stored.autoSave !== false;
 
       if (autoSave) {
-        span.textContent = 'Saving...';
+        span.textContent = getStatusText('saving');
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'Saved ✓';
+            span.textContent = getStatusText('saved');
             stremioButton.style.border = '1px solid #34d399';
             span.style.color = '#34d399';
           } else {
-            span.textContent = 'Failed';
+            span.textContent = getStatusText('failed');
           }
           setTimeout(() => {
             span.textContent = btnText;
@@ -641,7 +732,7 @@
           }, 3000);
         });
       } else {
-        span.textContent = 'Loading...';
+        span.textContent = getStatusText('loading');
         chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
         setTimeout(() => {
           span.textContent = btnText;
@@ -665,16 +756,24 @@
 
     if (!title || !titleEl) return;
 
-    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    const btnText = getBtnText(action);
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
 
     const stremioButton = document.createElement('a');
     stremioButton.id = 'stremio-hub-btn';
+    if (currentLang === 'ar') stremioButton.classList.add('stremio-ar');
     stremioButton.title = btnText;
     stremioButton.innerHTML = `<img alt="${btnText}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" src="${iconUrl}"/>`;
 
     // We make it inline-block and give it a little margin so it sits next to the title
-    stremioButton.setAttribute('style', 'margin-left: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;');
+    
+    if (currentLang === 'ar') {
+      stremioButton.setAttribute('style', 'margin-left: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;');
+      stremioButton.style.fontFamily = "'Thmanyah', system-ui, -apple-system, sans-serif";
+    } else {
+      stremioButton.setAttribute('style', 'margin-left: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;');
+    }
+
 
     const img = stremioButton.querySelector('img');
 
@@ -732,60 +831,54 @@
     if (!titleEl) return;
 
     let title = titleEl.childNodes[0]?.textContent?.trim() || titleEl.textContent?.trim();
-    let yearEl = document.querySelector('.year') || titleEl.querySelector('.year');
+    let yearEl = document.querySelector('.year') || titleEl.parentElement?.querySelector('.secondary');
     let year = yearEl?.textContent?.match(/\d{4}/)?.[0];
 
     const type = window.location.href.includes('/shows/') ? 'series' : 'movie';
 
-    const btnText = action === 'open' ? 'Open in Stremio' : 'Save to Stremio';
+    if (!title) return;
+
+    const btnText = getBtnText(action);
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
 
-    // Create the button using Trakt's classes so it adapts seamlessly
-    const stremioContainer = document.createElement('div');
-    stremioContainer.className = "where-to-watch-item svelte-k046bf";
-    stremioContainer.id = 'stremio-hub-btn';
+    const stremioButton = document.createElement('a');
+    stremioButton.id = 'stremio-hub-btn';
+    if (currentLang === 'ar') stremioButton.classList.add('stremio-ar');
+    stremioButton.title = btnText;
+    stremioButton.innerHTML = `<img alt="${btnText}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" src="${iconUrl}"/>`;
 
-    stremioContainer.innerHTML = `
-      <a target="_blank" tabindex="0" href="#" class="svelte-tssxlx trakt-link" style="text-decoration:none;">
-        <div class="where-to-watch-item-content svelte-k046bf" data-variant="service" style="transition: 0.2s;">
-          <div class="trakt-where-to-watch-logo svelte-1t4scfj" data-size="default">
-            <div class="trakt-streaming-service-logo svelte-1jvqy9q">
-              <img loading="lazy" src="${iconUrl}" alt="Stremio" class="svelte-cmmi3r image-animation-enabled trakt-service-logo image-loaded" style="border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-            </div>
-          </div>
-          <p class="svelte-k046bf stremio-trakt-text" style="color: #99aabb; font-weight: 500; margin-top: 4px; transition: color 0.2s;">${btnText}</p>
-        </div>
-      </a>
-    `;
+    if (currentLang === 'ar') {
+      stremioButton.setAttribute('style', 'margin-right: 12px; margin-left: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;');
+      stremioButton.style.fontFamily = "'Thmanyah', system-ui, -apple-system, sans-serif";
+    } else {
+      stremioButton.setAttribute('style', 'margin-left: 12px; margin-right: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;');
+    }
 
-    const link = stremioContainer.querySelector('a');
-    const innerDiv = stremioContainer.querySelector('.where-to-watch-item-content');
-    const span = stremioContainer.querySelector('.stremio-trakt-text');
+    const img = stremioButton.querySelector('img');
 
-    link.addEventListener('mouseenter', () => {
-      innerDiv.style.transform = 'translateY(-2px)';
-      span.style.color = '#a78bfa';
-    });
-    link.addEventListener('mouseleave', () => {
-      innerDiv.style.transform = 'translateY(0)';
-      span.style.color = '#99aabb';
-    });
+    stremioButton.addEventListener('mouseenter', () => img.style.transform = 'scale(1.1)');
+    stremioButton.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
 
-    link.addEventListener('click', async (e) => {
+    const showFeedback = (res) => {
+      const isSuccess = res && res.success;
+      if (isSuccess && res.itemMeta && typeof showStremioHubToast === 'function') {
+        showStremioHubToast(res.itemMeta);
+      }
+      const color = isSuccess ? '#34d399' : '#f87171';
+      img.style.boxShadow = `0 0 0 3px ${color}, 0 4px 12px ${color}80`;
+      img.style.transform = 'scale(1.1)';
+      setTimeout(() => {
+        img.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+        img.style.transform = 'scale(1)';
+      }, 3000);
+    };
+
+    stremioButton.addEventListener('click', async (e) => {
       e.preventDefault();
 
       if (action === 'open') {
-        span.textContent = 'Opening...';
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) {
-            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'Opened ✓';
-            span.style.color = '#34d399';
-          } else {
-            span.textContent = 'Failed';
-            span.style.color = '#f87171';
-          }
-          setTimeout(() => { span.textContent = btnText; span.style.color = '#a78bfa'; }, 3000);
+          showFeedback(res);
         });
         return;
       }
@@ -794,96 +887,19 @@
       const autoSave = stored.autoSave !== false;
 
       if (autoSave) {
-        span.textContent = 'Saving...';
         chrome.runtime.sendMessage({ type: 'ADD_TO_LIBRARY', query: title, year, mediaType: type }, (res) => {
-          if (res && res.success) {
-            if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'Saved ✓';
-            span.style.color = '#34d399';
-            innerDiv.style.borderColor = '#34d399';
-          } else {
-            span.textContent = 'Failed';
-            span.style.color = '#f87171';
-            innerDiv.style.borderColor = '#f87171';
-          }
-          setTimeout(() => {
-            span.textContent = btnText;
-            span.style.color = '#a78bfa';
-            innerDiv.style.borderColor = 'rgba(145, 109, 213, 0.4)';
-          }, 3000);
+          showFeedback(res);
         });
       } else {
-        span.textContent = 'Loading...';
         chrome.runtime.sendMessage({ type: 'SEARCH_IN_POPUP', query: title, year, mediaType: type });
-        setTimeout(() => span.textContent = btnText, 2000);
       }
     });
 
-    // Helper to find the container
-    const findWtwContainer = () => {
-      let container = null;
-      const allTitles = Array.from(document.querySelectorAll('.trakt-list-title span, h2, h3'));
-      const wtwTitle = allTitles.find(el => {
-        const text = el.textContent.toLowerCase();
-        return text.includes('where to watch') || text.includes('stream');
-      });
-
-      if (wtwTitle) {
-        const section = wtwTitle.closest('.section-list-container') || wtwTitle.closest('section');
-        if (section) {
-          container = section.querySelector('.section-list-horizontal-scroll') || section.querySelector('.trakt-list-item-container');
-
-          if (!container) {
-            const emptyState = section.querySelector('.section-list-empty-state');
-            if (emptyState) {
-              emptyState.innerHTML = '';
-              emptyState.style.display = 'flex';
-              emptyState.style.gap = '8px';
-              emptyState.style.flexDirection = 'row';
-              emptyState.style.justifyContent = 'flex-start';
-              container = emptyState;
-            }
-          }
-        }
-      }
-
-      if (!container) {
-        container = document.querySelector('.trakt-list-item-container.section-list-horizontal-scroll') || document.querySelector('.section-list-horizontal-scroll');
-      }
-      if (!container) {
-        const item = document.querySelector('.where-to-watch-item');
-        if (item) container = item.parentElement;
-      }
-      return container;
-    };
-
-    let whereToWatchContainer = findWtwContainer();
-
-    if (whereToWatchContainer) {
-      whereToWatchContainer.insertBefore(stremioContainer, whereToWatchContainer.firstChild);
-    } else {
-      // Fallback appending
-      const sidebar = document.querySelector('.sidebar') || document.querySelector('#summary-wrapper') || document.querySelector('.trakt-sidebar');
-      if (sidebar) {
-        sidebar.insertBefore(stremioContainer, sidebar.firstChild);
-      } else {
-        const actionWrapper = document.createElement('div');
-        actionWrapper.style.marginTop = '10px';
-        actionWrapper.appendChild(stremioContainer);
-        titleEl.parentElement.appendChild(actionWrapper);
-      }
-
-      // Relocate once dynamically loaded
-      let retries = 0;
-      const interval = setInterval(() => {
-        const dynamicContainer = findWtwContainer();
-        if (dynamicContainer) {
-          dynamicContainer.insertBefore(stremioContainer, dynamicContainer.firstChild);
-          clearInterval(interval);
-        }
-        if (retries++ > 20) clearInterval(interval); // Give up after 10 seconds
-      }, 500);
-    }
+    // Append directly to the h1 so it stays right next to the movie/show title permanently
+    titleEl.style.display = 'inline-flex';
+    titleEl.style.alignItems = 'center';
+    titleEl.style.flexWrap = 'wrap';
+    titleEl.appendChild(stremioButton);
   }
 
   // ==================== Standard Button Factory ====================
@@ -893,14 +909,16 @@
     if (document.getElementById('stremio-hub-btn')) return;
 
     const iconUrl = chrome.runtime.getURL('icons/stremio-icon.png');
-    const btnText = action === 'open' ? 'فتح في Stremio' : 'حفظ في Stremio';
+    const btnText = getBtnText(action);
 
     const wrapper = document.createElement('div');
     wrapper.id = 'stremio-hub-btn';
     wrapper.setAttribute('role', 'button');
     wrapper.setAttribute('tabindex', '0');
     wrapper.setAttribute('aria-label', `${btnText} - ${title}`);
+    if (currentLang === 'ar') wrapper.classList.add('stremio-ar');
 
+    
     wrapper.style.cssText = `
       display: inline-flex;
       align-items: center;
@@ -924,6 +942,10 @@
       position: relative;
       z-index: 1000;
     `;
+    if (currentLang === 'ar') {
+      wrapper.style.fontFamily = "'Thmanyah', system-ui, -apple-system, sans-serif";
+    }
+
 
     wrapper.innerHTML = `
       <img src="${iconUrl}" style="width: 24px; height: 24px; border-radius: 6px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" alt="Stremio">
@@ -947,13 +969,13 @@
       const span = wrapper.querySelector('span');
 
       if (action === 'open') {
-        span.textContent = 'جارِ الفتح...';
+        span.textContent = getStatusText('opening');
         chrome.runtime.sendMessage({ type: 'OPEN_IN_STREMIO_DIRECT', query: title, year, mediaType: type }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'تم الفتح ✓';
+            span.textContent = getStatusText('opened');
           } else {
-            span.textContent = 'فشل';
+            span.textContent = getStatusText('failed');
           }
           setTimeout(() => span.textContent = btnText, 3000);
         });
@@ -964,7 +986,7 @@
       const autoSave = stored.autoSave !== false;
 
       if (autoSave) {
-        span.textContent = 'جارِ الحفظ...';
+        span.textContent = getStatusText('saving');
 
         chrome.runtime.sendMessage({
           type: 'ADD_TO_LIBRARY',
@@ -974,11 +996,11 @@
         }, (res) => {
           if (res && res.success) {
             if (res.itemMeta && typeof showStremioHubToast === 'function') showStremioHubToast(res.itemMeta);
-            span.textContent = 'تم الحفظ بنجاح ✓';
+            span.textContent = getStatusText('saved');
             span.style.color = '#34d399';
             wrapper.style.borderColor = '#34d399';
           } else {
-            span.textContent = 'فشل الحفظ';
+            span.textContent = getStatusText('failed');
             span.style.color = '#f87171';
           }
           setTimeout(() => {
@@ -988,7 +1010,7 @@
           }, 3000);
         });
       } else {
-        span.textContent = 'جارِ البحث...';
+        span.textContent = getStatusText('loading');
         chrome.runtime.sendMessage({
           type: 'SEARCH_IN_POPUP',
           query: title,
@@ -1091,25 +1113,34 @@
           exitTransform = 'translateY(150%) scale(0.9)';
         }
 
+        // Inject font-face into document.head if not already present
+        if (!document.getElementById('stremio-hub-fonts')) {
+          const fontStyle = document.createElement('style');
+          fontStyle.id = 'stremio-hub-fonts';
+          fontStyle.textContent = `
+            @font-face {
+              font-family: 'Thmanyah';
+              src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Regular.woff2')}') format('woff2');
+              font-weight: normal;
+              font-style: normal;
+            }
+            @font-face {
+              font-family: 'Thmanyah';
+              src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Bold.woff2')}') format('woff2');
+              font-weight: bold;
+              font-style: normal;
+            }
+          `;
+          document.head.appendChild(fontStyle);
+        }
+
         const isAr = settings.language === 'ar';
         const successMsg = isAr ? 'تم الحفظ بنجاح' : 'Saved successfully';
         const unknownTitle = isAr ? 'عنوان غير معروف' : 'Unknown title';
 
-        // Add font-face directly inside the shadow root so it's isolated but active
+        // Add styles for the toast inside the shadow root
         const style = document.createElement('style');
         style.textContent = `
-          @font-face {
-            font-family: 'Thmanyah';
-            src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Regular.woff2')}') format('woff2');
-            font-weight: normal;
-            font-style: normal;
-          }
-          @font-face {
-            font-family: 'Thmanyah';
-            src: url('${chrome.runtime.getURL('fonts/thmanyahsans-Bold.woff2')}') format('woff2');
-            font-weight: bold;
-            font-style: normal;
-          }
           .toast-container {
             position: fixed;
             ${positionStyles}
