@@ -35,6 +35,8 @@
 - **🌐 Cross-Site Integration**: Adds smart "Save to Library" and "Open in Stremio" buttons directly on your favorite movie discovery websites.
 - **🖱️ Right-Click Quick Search**: Highlight any movie or show name, right-click, and instantly search for it in Stremio.
 - **📚 Full Library Management**: View, filter, sort, and mark items as watched (Movies, Series, and Continue Watching) natively in your browser popup.
+- **✨ Stremio Web Enhancer** *(New)*: Customize Stremio Web with deep OLED black themes, custom Arabic/English typography (like Thmanyah), custom accent colors, and injected community ratings.
+- **👥 Multi-Account & Avatars**: Seamlessly switch between multiple Stremio accounts and assign beautiful custom avatars to them.
 - **🧩 Addon Manager** *(New in v1.3.0)*: Install, remove, reorder, and manage your Stremio addons — with per-addon catalog editing — all from the extension.
 - **🎨 Glassmorphism UI**: A breathtaking, premium Apple-inspired dark mode design with buttery smooth micro-animations.
 - **🔗 Smart Add-on Support**: Dynamically fetches descriptions and metadata from your actual Stremio add-ons (like TMDB) to provide rich, localized context.
@@ -117,6 +119,20 @@ Load the `extension-firefox` folder at `about:debugging#/runtime/this-firefox`.
 **StremioHub is an unofficial, community-built extension.** It is not affiliated with, endorsed by, or officially connected to the Stremio team.
 
 ## 📋 Changelog
+
+### v1.4.1
+- Fix OLED theme black background issue on video player control bar in Stremio Web
+- Fix custom Thmanyah font rendering in Stremio Web and native subtitles
+- Add dynamic version display in popup settings
+- Remove unnecessary `tabs` permission from manifest for better privacy
+
+### v1.4.0 — Stremio Web Enhancer & Multi-Account
+- ✅ Customize Stremio Web with a deep OLED black theme
+- ✅ Inject custom typography (Arabic/English fonts) into Stremio Web UI & Subtitles
+- ✅ Change Stremio Web's default accent color to your favorite color
+- ✅ Inject Community Ratings (Rotten Tomatoes, Metacritic, Letterboxd) via MDBList/PublicMetaDB
+- ✅ Account Switcher: save multiple Stremio accounts and switch with one click
+- ✅ Custom Avatars: assign awesome avatars to your saved accounts
 
 ### v1.3.0 — Addon Manager
 - ✅ Full addon management panel (install, remove, reorder, sync)
