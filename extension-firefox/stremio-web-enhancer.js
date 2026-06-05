@@ -366,7 +366,26 @@
     let css = '';
 
     if (font) {
-      if (font !== 'Thmanyah') {
+      if (font === 'Thmanyah') {
+        try {
+          const fontUrlReg = chrome.runtime.getURL('fonts/thmanyahsans-Regular.woff2');
+          const fontUrlBold = chrome.runtime.getURL('fonts/thmanyahsans-Bold.woff2');
+          css += `
+            @font-face {
+              font-family: 'Thmanyah';
+              src: url('${fontUrlReg}') format('woff2');
+              font-weight: normal;
+              font-style: normal;
+            }
+            @font-face {
+              font-family: 'Thmanyah';
+              src: url('${fontUrlBold}') format('woff2');
+              font-weight: bold;
+              font-style: normal;
+            }
+          `;
+        } catch (e) {}
+      } else {
         const linkId = `sh-font-${font.replace(/\s/g, '-')}`;
         if (!document.getElementById(linkId)) {
           const link  = document.createElement('link');
@@ -429,8 +448,8 @@
         div[class*="nav-content-container"],
         div[class*="settings-container"],
         div[class*="library-container"],
-        div[class*="menu-container"],
-        div[class*="nav-menu-container"],
+        div[class*="menu-container"]:not([class*="control-bar"]),
+        div[class*="nav-menu-container"]:not([class*="control-bar"]),
         div[class*="modal-container"],
         div[class*="intro-container"],
         div[class*="auth-container"] {

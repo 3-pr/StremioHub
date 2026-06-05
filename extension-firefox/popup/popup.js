@@ -1040,6 +1040,15 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 // ==================== Init ====================
 document.addEventListener('DOMContentLoaded', async () => {
+  // Display extension version
+  const versionDisplay = document.getElementById('extension-version-display');
+  if (versionDisplay) {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      versionDisplay.textContent = `v${manifest.version}`;
+    } catch (e) {}
+  }
+
   // Show skeleton UI immediately before any async work (perceived speed boost)
   const moviesGrid = document.getElementById('movies-grid');
   const seriesGrid = document.getElementById('series-grid');
