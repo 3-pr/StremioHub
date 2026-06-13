@@ -120,7 +120,7 @@ Load the `extension-firefox` folder at `about:debugging#/runtime/this-firefox`.
 
 ## 📋 Changelog
 
-### v1.4.1
+### v1.4.2
 - Fix OLED theme black background issue on video player control bar in Stremio Web
 - Fix custom Thmanyah font rendering in Stremio Web and native subtitles
 - Add dynamic version display in popup settings
