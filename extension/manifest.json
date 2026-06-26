@@ -20,6 +20,7 @@
     "alarms"
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://api.strem.io/*",
     "https://v3-cinemeta.strem.io/*",
     "https://*.strem.io/*",
