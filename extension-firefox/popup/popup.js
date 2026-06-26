@@ -34,10 +34,6 @@ const I18N = {
     size_default: "الافتراضي (عريض)",
     size_compact: "مدمج (أصغر)",
     size_mini: "جوال (عمودي)",
-    theme_title: "المظهر (الثيم)",
-    theme_desc: "تخصيص ألوان وشكل الواجهة.",
-    theme_default: "الافتراضي",
-    theme_oled: "بنفسجي OLED ناعم",
     tab_appearance: "الجماليات",
     anim_title: "تأثير البطاقات",
     anim_desc: "حركة دخول الأعمال عند فتح الإضافة.",
@@ -46,6 +42,10 @@ const I18N = {
     anim_float: "الصعود والتوهج",
     anim_flip: "الكشف 3D",
     anim_none: "بدون تأثير (إلغاء)",
+    theme_title: "المظهر (الثيم)",
+    theme_desc: "تخصيص ألوان وشكل الواجهة.",
+    theme_default: "الافتراضي",
+    theme_oled: "بنفسجي OLED ناعم",
     sites_title: "المواقع المدعومة",
     sites_desc: "تحكم بظهور الأزرار في كل موقع وماذا تفعل (حفظ أو فتح).",
     action_save: "حفظ",
@@ -185,6 +185,27 @@ const I18N = {
     addon_disable_warning_desc: "عدم إظهار التذكير بالنسخ الاحتياطي عند حذف إضافة أو تعديل كتالوج.",
     addon_disable_protected_title: "تحذير الإضافات المحمية",
     addon_disable_protected_desc: "إيقاف ظهور رسالة التحذير عند محاولة حذف إضافة أساسية/محمية.",
+
+    // Addon Update Checker
+    addon_updates_title: "فحص التحديثات",
+    addon_updates_desc: "تحقق من وجود إصدارات جديدة لإضافاتك المثبتة.",
+    addon_updates_check_btn: "فحص الآن",
+    addon_updates_checking: "جارٍ الفحص...",
+    addon_updates_none: "جميع الإضافات محدّثة ✓",
+    addon_updates_found: "تحديث متاح",
+    addon_updates_update_btn: "تحديث",
+    addon_updates_open_btn: "افتح يدوياً",
+    addon_updates_update_ok: "تم التحديث بنجاح ✓",
+    addon_updates_update_err: "فشل التحديث",
+    addon_updates_last_check: "آخر فحص:",
+    addon_updates_last_check_never: "لم يتم الفحص بعد",
+    addon_updates_complex_hint: "تحتوي على إعدادات مخصصة",
+    addon_updates_error: "فشل الفحص، تحقق من اتصالك",
+    addon_updates_add_btn: "إضافة التحديث",
+    addon_updates_paste_hint: "قم بإعداد الإضافة من الرابط، ثم انسخ رابط التثبيت (Manifest) والصقه هنا:",
+    addon_updates_save_btn: "حفظ",
+    addon_updates_cancel_btn: "إلغاء",
+    addon_updates_invalid_url: "رابط الإضافة غير صالح",
 
     // Stremio Web Enhancer
     tab_webenhancer: 'ستريميو ويب',
@@ -402,6 +423,27 @@ const I18N = {
     addon_disable_warning_desc: "Do not show the backup reminder when removing an addon or editing catalogs.",
     addon_disable_protected_title: "Protected Addon Warning",
     addon_disable_protected_desc: "Disable the warning message when attempting to delete an official/protected addon.",
+
+    // Addon Update Checker (EN)
+    addon_updates_title: "Check for Updates",
+    addon_updates_desc: "Check if newer versions are available for your installed addons.",
+    addon_updates_check_btn: "Check Now",
+    addon_updates_checking: "Checking...",
+    addon_updates_none: "All addons are up to date ✓",
+    addon_updates_found: "Update available",
+    addon_updates_update_btn: "Update",
+    addon_updates_open_btn: "Open Manually",
+    addon_updates_update_ok: "Updated successfully ✓",
+    addon_updates_update_err: "Update failed",
+    addon_updates_last_check: "Last checked:",
+    addon_updates_last_check_never: "Never checked",
+    addon_updates_complex_hint: "Has custom settings",
+    addon_updates_error: "Check failed. Verify your connection",
+    addon_updates_add_btn: "Add Update",
+    addon_updates_paste_hint: "Configure from the link, then paste the new Manifest URL here:",
+    addon_updates_save_btn: "Save",
+    addon_updates_cancel_btn: "Cancel",
+    addon_updates_invalid_url: "Invalid addon URL",
 
     // Stremio Web Enhancer
     tab_webenhancer: 'Stremio Web',
@@ -1169,6 +1211,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAvatarPicker();
   initSettingsAvatarPicker();
   setupAddonManagerListeners();
+
+  // تحديث الإضافات تلقائياً في الخلفية عند كل فتح للإضافة
+  if (state.auth?.authKey) {
+    loadAndRenderAddons().catch(() => {});
+  }
 });
 
 
@@ -1695,7 +1742,18 @@ function setupEventListeners() {
   if (translateBtn) translateBtn.addEventListener('click', handleTranslateDescription);
 
   $('search-toggle').addEventListener('click', toggleSearch);
-  $('settings-btn').addEventListener('click', () => showScreen('settings'));
+  $('settings-btn').addEventListener('click', () => {
+    showScreen('settings');
+    // تحميل الإضافات تلقائياً عند فتح الإعدادات
+    // يضمن ظهور الإضافات دائماً دون الحاجة للضغط على زر ريفريش
+    setTimeout(() => {
+      const activeAddonTab = document.querySelector('[data-settings-tab="addons"].active') ||
+                             document.getElementById('settings-tab-addons')?.classList.contains('active');
+      // طلب التحميل دائماً عند فتح الإعدادات لضمان تمام التزامن
+      loadAndRenderAddons();
+      initAddonUpdatesUI();
+    }, 50);
+  });
   $('settings-back-btn').addEventListener('click', () => showScreen('main'));
 
   const refreshBtn = $('refresh-btn');
@@ -3329,6 +3387,13 @@ const AddonManager = {
   // Save addons to Stremio API
   async saveAddons(addons) {
     if (!state.auth?.authKey) throw new Error('Not logged in');
+    //  طبقة حماية: لا تسمح بحفظ قائمة فارغة أبداً
+    if (!addons || addons.length === 0) {
+      const errMsg = state.language === 'ar'
+        ? 'خطأ: القائمة فارغة، أعد تحميل الإضافات أولاً'
+        : 'Error: Empty addon list — please refresh addons first';
+      throw new Error(errMsg);
+    }
     const res = await fetch('https://api.strem.io/api/addonCollectionSet', {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
@@ -3343,6 +3408,21 @@ const AddonManager = {
   async installAddon(manifestUrl) {
     const url = manifestUrl.trim();
     if (!url) throw new Error(this.t('addon_err_no_url'));
+
+    // طبقة حماية: إذا لم تكن الإضافات محملة بعد، أعد جلبها أولاً
+    // هذا يمنع حذف جميع الإضافات عند التثبيت بدون تحميل مسبق
+    if (this._addons.length === 0 && state.auth?.authKey) {
+      try {
+        const freshData = await StremioAPI.getAddons(state.auth.authKey);
+        this._addons = JSON.parse(JSON.stringify(freshData));
+        this._hasChanges = false;
+        this._updateSyncBtn();
+        renderAddonsList(); // تحديث الواجهة أيضاً
+      } catch (e) {
+        console.warn('[StremioHub] installAddon: failed to pre-fetch addons', e);
+      }
+    }
+
     let manifest;
     try {
       const res = await fetch(url);
@@ -3791,12 +3871,350 @@ async function loadAndRenderAddons() {
   }
 }
 
+// ==================== Addon Update Checker UI ====================
+
+/**
+ * تنسيق وقت آخر فحص بشكل نسبي
+ */
+function formatLastCheckTime(timestamp) {
+  if (!timestamp) return null;
+  const lang = state.language || 'ar';
+  const diff = Date.now() - timestamp;
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (lang === 'ar') {
+    if (mins < 1) return 'منذ لحظات';
+    if (mins < 60) return `منذ ${mins} دقيقة`;
+    if (hours < 24) return `منذ ${hours} ساعة`;
+    return `منذ ${days} يوم`;
+  } else {
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  }
+}
+
+/**
+ * رسم قائمة التحديثات داخل #addon-updates-list
+ */
+function renderAddonUpdates(updates) {
+  const lang = state.language || 'ar';
+  const t = (key) => I18N[lang][key] || key;
+  const list = $('addon-updates-list');
+  const noneEl = $('addon-updates-none');
+  if (!list) return;
+
+  list.innerHTML = '';
+
+  if (!updates || updates.length === 0) {
+    if (noneEl) {
+      noneEl.style.display = 'flex';
+      noneEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (noneEl) {
+    noneEl.style.display = 'none';
+    noneEl.classList.add('hidden');
+  }
+
+  updates.forEach((item) => {
+    const row = document.createElement('div');
+    row.style.cssText = `
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    `;
+
+    // أيقونة الإضافة
+    const iconHtml = item.logo
+      ? `<img src="${item.logo}" alt="" style="width:28px;height:28px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+         <span style="display:none;width:28px;height:28px;border-radius:6px;background:rgba(139,92,246,0.15);align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🧩</span>`
+      : `<span style="display:flex;width:28px;height:28px;border-radius:6px;background:rgba(139,92,246,0.15);align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🧩</span>`;
+
+    // زر التحديث أو الفتح اليدوي
+    let actionBtn;
+    if (item.isComplex) {
+      // إضافة معقدة → تحديث يدوي مخصص (نسخ ولصق الرابط)
+      actionBtn = document.createElement('button');
+      actionBtn.className = 'addon-action-btn install-btn';
+      actionBtn.style.cssText = 'font-size:11px;padding:5px 10px;white-space:nowrap;flex-shrink:0;';
+      actionBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-inline-end:4px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>${t('addon_updates_add_btn')}`;
+      actionBtn.title = t('addon_updates_complex_hint');
+      
+      actionBtn.addEventListener('click', () => {
+        // استخراج رابط الإعدادات (في الغالب الرابط بدون manifest.json وأحياناً بمسار configure)
+        const configUrl = item.transportUrl.replace(/\/manifest\.json$/, '/configure');
+        
+        row.style.flexDirection = 'column';
+        row.style.alignItems = 'stretch';
+        row.innerHTML = `
+          <div style="font-size:12px;margin-bottom:8px;">
+            <span style="color:var(--text-primary);">${t('addon_updates_paste_hint')}</span>
+            <a href="${configUrl}" target="_blank" style="color:var(--accent-light);text-decoration:underline;margin-inline-start:4px;font-weight:600;">فتح صفحة إعداد ${escapeHTML(item.name)}</a>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="url" class="complex-update-input text-input" placeholder="https://..." style="flex:1;min-width:0;padding:6px 10px;font-size:11px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;">
+            <button class="complex-update-save addon-action-btn install-btn" style="padding:6px 12px;font-size:11px;">${t('addon_updates_save_btn')}</button>
+            <button class="complex-update-cancel addon-action-btn" style="padding:6px 12px;font-size:11px;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.1);color:var(--text-secondary);">${t('addon_updates_cancel_btn')}</button>
+          </div>
+        `;
+        
+        const saveBtn = row.querySelector('.complex-update-save');
+        const cancelBtn = row.querySelector('.complex-update-cancel');
+        const inputEl = row.querySelector('.complex-update-input');
+
+        saveBtn.addEventListener('click', () => handleManualComplexUpdate(item, row, inputEl.value.trim(), saveBtn));
+        cancelBtn.addEventListener('click', () => {
+          chrome.storage.local.get(['addonUpdates'], (data) => {
+            renderAddonUpdates(data.addonUpdates);
+          });
+        });
+      });
+    } else {
+      // إضافة بسيطة → تحديث مباشر
+      actionBtn = document.createElement('button');
+      actionBtn.className = 'addon-action-btn install-btn';
+      actionBtn.style.cssText = 'font-size:11px;padding:5px 10px;white-space:nowrap;flex-shrink:0;';
+      actionBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-inline-end:4px;"><path d="M23 4v6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/><path d="M1 20v-6h6"/></svg>${t('addon_updates_update_btn')}`;
+      actionBtn.addEventListener('click', () => handleSingleAddonUpdate(item, row, actionBtn));
+    }
+
+    row.innerHTML = `
+      ${iconHtml}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(item.name)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;direction:ltr;text-align:start;">
+          <span style="color:var(--text-muted);">v${escapeHTML(item.installedVersion)}</span>
+          <span style="color:#8b5cf6;margin:0 4px;">→</span>
+          <span style="color:#10b981;font-weight:600;">v${escapeHTML(item.latestVersion)}</span>
+          ${item.isComplex ? `<span style="margin-right:6px;margin-left:6px;background:rgba(245,158,11,0.15);color:#f59e0b;padding:1px 5px;border-radius:4px;font-size:10px;">⚙️ ${t('addon_updates_complex_hint')}</span>` : ''}
+        </div>
+      </div>
+    `;
+    row.appendChild(actionBtn);
+    list.appendChild(row);
+  });
+}
+
+/**
+ * تحديث إضافة بسيطة مباشرةً من الـ Popup
+ */
+async function handleSingleAddonUpdate(item, rowEl, btn) {
+  const lang = state.language || 'ar';
+  const t = (key) => I18N[lang][key] || key;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="dot-loader" style="transform:scale(0.6);"></span>';
+
+  try {
+    const response = await new Promise((resolve) =>
+      chrome.runtime.sendMessage({ type: 'UPDATE_SINGLE_ADDON', transportUrl: item.transportUrl }, resolve)
+    );
+
+    if (response?.success) {
+      // نجح التحديث — احذف الصف بأنيميشن
+      rowEl.style.transition = 'opacity 0.3s, transform 0.3s';
+      rowEl.style.opacity = '0';
+      rowEl.style.transform = 'translateX(10px)';
+      setTimeout(() => {
+        rowEl.remove();
+        // إذا فرغت القائمة أظهر حالة "كل شيء محدّث"
+        const list = $('addon-updates-list');
+        const noneEl = $('addon-updates-none');
+        if (list && list.children.length === 0 && noneEl) {
+          noneEl.style.display = 'flex';
+          noneEl.classList.remove('hidden');
+        }
+      }, 300);
+      showToast(`${item.name}: ${t('addon_updates_update_ok')}`, 'success');
+
+      // إشعار محقون في المتصفح (نفس نظام حفظ الفلم)
+      injectPageToast(item.name, response.newVersion, lang);
+    } else {
+      throw new Error(response?.error || 'unknown');
+    }
+  } catch (err) {
+    showToast(`${item.name}: ${t('addon_updates_update_err')}`, 'error');
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/><path d="M1 20v-6h6"/></svg>${t('addon_updates_update_btn')}`;
+  }
+}
+
+/**
+ * تحديث إضافة معقدة بتوفير الرابط الجديد يدوياً
+ */
+async function handleManualComplexUpdate(item, rowEl, newUrl, btn) {
+  const lang = state.language || 'ar';
+  const t = (key) => I18N[lang][key] || key;
+
+  if (!newUrl || !newUrl.startsWith('http')) {
+    showToast(t('addon_updates_invalid_url'), 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="dot-loader" style="transform:scale(0.6);"></span>';
+
+  try {
+    const response = await new Promise((resolve) =>
+      chrome.runtime.sendMessage({ 
+        type: 'UPDATE_COMPLEX_ADDON', 
+        oldTransportUrl: item.transportUrl,
+        newTransportUrl: newUrl 
+      }, resolve)
+    );
+
+    if (response?.success) {
+      rowEl.style.transition = 'opacity 0.3s, transform 0.3s';
+      rowEl.style.opacity = '0';
+      rowEl.style.transform = 'translateX(10px)';
+      setTimeout(() => {
+        rowEl.remove();
+        const list = $('addon-updates-list');
+        const noneEl = $('addon-updates-none');
+        if (list && list.children.length === 0 && noneEl) {
+          noneEl.style.display = 'flex';
+          noneEl.classList.remove('hidden');
+        }
+      }, 300);
+      showToast(`${item.name}: ${t('addon_updates_update_ok')}`, 'success');
+      injectPageToast(item.name, response.newVersion, lang);
+    } else {
+      throw new Error(response?.error || 'unknown');
+    }
+  } catch (err) {
+    showToast(`${item.name}: ${t('addon_updates_invalid_url')}`, 'error');
+    btn.disabled = false;
+    btn.textContent = t('addon_updates_save_btn');
+  }
+}
+
+/**
+ * حقن إشعار Toast في الصفحة الحالية (نفس نظام حفظ الفلم)
+ */
+function injectPageToast(addonName, newVersion, lang) {
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs[0]?.id) return;
+      const msg = lang === 'ar'
+        ? `تم تحديث ${addonName} إلى v${newVersion} ✓`
+        : `${addonName} updated to v${newVersion} ✓`;
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: 'SHOW_TOAST',
+        message: msg,
+        toastType: 'success'
+      }).catch(() => {}); // نتجاهل الخطأ إذا الصفحة لا تقبل الرسائل
+    });
+  } catch { /* تجاهل */ }
+}
+
+/**
+ * تهيئة واجهة فحص التحديثات وربط الأحداث
+ * (يستخدم فلاغ _updatesListenerBound لمنع تكرار التسجيل)
+ */
+function initAddonUpdatesUI() {
+  const lang = state.language || 'ar';
+  const t = (key) => I18N[lang][key] || key;
+
+  const checkBtn = $('addon-check-updates-btn');
+  const spinner = $('addon-updates-spinner');
+  const lastCheckEl = $('addon-updates-last-check');
+
+  // تحميل النتائج المحفوظة مسبقاً من storage (دائماً)
+  chrome.storage.local.get(['addonUpdates', 'addonUpdatesCheckedAt'], ({ addonUpdates, addonUpdatesCheckedAt }) => {
+    if (addonUpdatesCheckedAt) {
+      const timeStr = formatLastCheckTime(addonUpdatesCheckedAt);
+      if (lastCheckEl && timeStr) {
+        lastCheckEl.textContent = `${t('addon_updates_last_check')} ${timeStr}`;
+        lastCheckEl.style.display = 'block';
+      }
+    } else {
+      if (lastCheckEl) {
+        lastCheckEl.textContent = t('addon_updates_last_check_never');
+        lastCheckEl.style.display = 'block';
+      }
+    }
+
+    if (addonUpdates && addonUpdates.length >= 0) {
+      renderAddonUpdates(addonUpdates);
+    }
+  });
+
+  // ربط زر "فحص الآن" مرة واحدة فقط باستخدام فلاغ
+  if (checkBtn && !checkBtn._updatesListenerBound) {
+    checkBtn._updatesListenerBound = true;
+
+    checkBtn.addEventListener('click', async () => {
+      if (checkBtn.disabled) return;
+
+      checkBtn.disabled = true;
+      if (spinner) { spinner.classList.remove('hidden'); }
+
+      // أنيميشن تدوير أيقونة الفحص
+      const icon = $('addon-check-updates-icon');
+      if (icon) icon.style.animation = 'spin 1s linear infinite';
+
+      // مسح القائمة القديمة
+      const list = $('addon-updates-list');
+      const noneEl = $('addon-updates-none');
+      if (list) list.innerHTML = '';
+      if (noneEl) { noneEl.style.display = 'none'; noneEl.classList.add('hidden'); }
+
+      try {
+        const response = await new Promise((resolve) =>
+          chrome.runtime.sendMessage({ type: 'CHECK_ADDON_UPDATES' }, resolve)
+        );
+
+        if (response?.success) {
+          const updates = response.updates || [];
+          renderAddonUpdates(updates);
+
+          // تحديث نص آخر فحص
+          if (lastCheckEl) {
+            const currentLang = state.language || 'ar';
+            const tNow = (key) => I18N[currentLang][key] || key;
+            lastCheckEl.textContent = `${tNow('addon_updates_last_check')} ${formatLastCheckTime(Date.now())}`;
+            lastCheckEl.style.display = 'block';
+          }
+
+          // إشعار Toast إذا وُجدت تحديثات
+          if (updates.length > 0) {
+            const currentLang = state.language || 'ar';
+            const tNow = (key) => I18N[currentLang][key] || key;
+            showToast(`${updates.length} ${tNow('addon_updates_found')}`, 'info');
+          }
+        } else {
+          const currentLang = state.language || 'ar';
+          showToast(I18N[currentLang]['addon_updates_error'] || 'Check failed', 'error');
+        }
+      } catch (err) {
+        const currentLang = state.language || 'ar';
+        showToast(I18N[currentLang]['addon_updates_error'] || 'Check failed', 'error');
+      } finally {
+        checkBtn.disabled = false;
+        if (spinner) { spinner.classList.add('hidden'); }
+        if (icon) icon.style.animation = '';
+      }
+    });
+  }
+}
+
 function setupAddonManagerListeners() {
   // Always reload addons fresh when tab is clicked
   const addonsTabBtn = document.querySelector('[data-settings-tab="addons"]');
   if (addonsTabBtn) {
-    addonsTabBtn.addEventListener('click', () => loadAndRenderAddons());
+    addonsTabBtn.addEventListener('click', () => {
+      loadAndRenderAddons();
+      initAddonUpdatesUI();
+    });
   }
+
+  // تهيئة أولية لواجهة التحديثات عند بدء التشغيل
+  initAddonUpdatesUI();
 
   // Refresh button — force re-fetch from server
   const refreshBtn = $('addon-refresh-btn');
@@ -4166,21 +4584,6 @@ function setupAddonManagerListeners() {
   }
 
   if (webAccentEl) {
-    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
-    if (isFirefox) {
-      webAccentEl.addEventListener('click', (e) => {
-        e.preventDefault();
-        const lang = typeof state !== 'undefined' && state.language ? state.language : 'ar';
-        const msg = lang === 'ar' 
-          ? 'في فايرفوكس: يرجى كتابة كود اللون (Hex) أو استخدام الألوان الجاهزة لتجنب إغلاق الإضافة.' 
-          : 'In Firefox: Please type the Hex code or use presets to avoid closing the popup.';
-        if (typeof showToast === 'function') {
-          showToast(msg, 'info');
-        } else {
-          alert(msg);
-        }
-      });
-    }
     webAccentEl.addEventListener('input', (e) => {
       updateAccentColor(e.target.value);
     });

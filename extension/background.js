@@ -19,6 +19,148 @@ async function updateContextMenu() {
 
 chrome.runtime.onInstalled.addListener(() => {
   updateContextMenu();
+  // جدولة فحص التحديثات كل 24 ساعة
+  chrome.alarms.create('addon-update-check', { periodInMinutes: 60 * 24 });
+});
+
+// ==================== Addon Update Checker ====================
+
+/**
+ * يكشف إذا كانت الإضافة تحتوي على إعدادات مخصصة في الرابط
+ * مثال: torrentio.strem.fun/providers=yts|KEY/manifest.json → معقّدة
+ */
+function isComplexAddon(transportUrl) {
+  if (!transportUrl) return false;
+  try {
+    const url = new URL(transportUrl);
+    // مسارات أكثر من segment واحد تدل على وجود إعدادات
+    const segments = url.pathname.split('/').filter(s => s && s !== 'manifest.json');
+    return segments.length > 1 || transportUrl.includes('|') || transportUrl.includes('%7C');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * يجلب الـ manifest.json من رابط الإضافة
+ * يتعامل مع:
+ * - transportUrl = https://domain.com/manifest.json  (الشائع)
+ * - transportUrl = https://domain.com/               (بدون manifest)
+ * - transportUrl = https://domain.com/settings/      (معقد)
+ */
+async function fetchRemoteManifest(transportUrl) {
+  let manifestUrl = transportUrl.trim();
+
+  // إذا كان الرابط ينتهي بـ manifest.json استخدمه مباشرةً
+  if (manifestUrl.endsWith('manifest.json')) {
+    // صحيح كما هو
+  } else {
+    // أضف manifest.json
+    if (!manifestUrl.endsWith('/')) manifestUrl += '/';
+    manifestUrl += 'manifest.json';
+  }
+
+  const res = await fetch(manifestUrl, {
+    signal: AbortSignal.timeout(8000) // 8 ثانية timeout
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+}
+
+/**
+ * الدالة الرئيسية لفحص تحديثات الإضافات
+ */
+async function checkAddonUpdates(authKey) {
+  if (!authKey) return [];
+
+  // 1. جلب الإضافات المثبتة من Stremio API
+  let addons = [];
+  try {
+    const res = await fetch('https://api.strem.io/api/addonCollectionGet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({ authKey, update: true })
+    });
+    const data = await res.json();
+    addons = data?.result?.addons || [];
+  } catch (err) {
+    console.warn('[StremioHub] checkAddonUpdates: failed to fetch addons list', err);
+    return [];
+  }
+
+  if (!addons.length) return [];
+
+  // 2. فحص كل إضافة بشكل متوازٍ
+  const checks = await Promise.allSettled(
+    addons.map(async (addon) => {
+      const transportUrl = addon.transportUrl;
+      if (!transportUrl) return null;
+
+      const installedVersion = addon.manifest?.version;
+      const name = addon.manifest?.name || addon.manifest?.id || 'Unknown';
+      const logo = addon.manifest?.logo || null;
+      const complex = isComplexAddon(transportUrl);
+
+      try {
+        const remoteManifest = await fetchRemoteManifest(transportUrl);
+        const latestVersion = remoteManifest?.version;
+
+        const hasUpdate = !!(
+          installedVersion &&
+          latestVersion &&
+          installedVersion !== latestVersion
+        );
+
+        return {
+          name,
+          logo,
+          installedVersion: installedVersion || '?',
+          latestVersion: latestVersion || '?',
+          hasUpdate,
+          isComplex: complex,
+          transportUrl
+        };
+      } catch {
+        // الإضافة غير متاحة أو فشل الجلب — نتجاهلها
+        return null;
+      }
+    })
+  );
+
+  // 3. فلترة: فقط الإضافات التي تحتاج تحديثاً
+  const updates = checks
+    .filter(r => r.status === 'fulfilled' && r.value?.hasUpdate)
+    .map(r => r.value);
+
+  // 4. حفظ النتائج في storage
+  await chrome.storage.local.set({
+    addonUpdates: updates,
+    addonUpdatesCheckedAt: Date.now()
+  });
+
+  // 5. تحديث Badge
+  const count = updates.length;
+  if (count > 0) {
+    await chrome.action.setBadgeText({ text: String(count) });
+    await chrome.action.setBadgeBackgroundColor({ color: '#8b5cf6' });
+  } else {
+    await chrome.action.setBadgeText({ text: '' });
+  }
+
+  return updates;
+}
+
+// ==================== Alarm Handler ====================
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === 'addon-update-check') {
+    try {
+      const { stremio_auth } = await chrome.storage.local.get(['stremio_auth']);
+      if (!stremio_auth?.authKey) return;
+      await checkAddonUpdates(stremio_auth.authKey);
+    } catch (err) {
+      console.warn('[StremioHub] Alarm update check failed:', err);
+    }
+  }
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -54,6 +196,143 @@ import { StremioAPI } from './modules/stremio-api.js';
 
 // ==================== Message Listener ====================
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+
+  // ── فحص تحديثات الإضافات (يدوي من الـ Popup) ──
+  if (message.type === 'CHECK_ADDON_UPDATES') {
+    (async () => {
+      try {
+        const { stremio_auth } = await chrome.storage.local.get(['stremio_auth']);
+        if (!stremio_auth?.authKey) {
+          sendResponse({ success: false, error: 'not_logged_in', updates: [] });
+          return;
+        }
+        const updates = await checkAddonUpdates(stremio_auth.authKey);
+        sendResponse({ success: true, updates });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message, updates: [] });
+      }
+    })();
+    return true;
+  }
+
+  // ── تحديث إضافة بسيطة مباشرةً عبر API ──
+  if (message.type === 'UPDATE_SINGLE_ADDON') {
+    (async () => {
+      try {
+        const { transportUrl } = message;
+        const { stremio_auth } = await chrome.storage.local.get(['stremio_auth']);
+        if (!stremio_auth?.authKey) throw new Error('not_logged_in');
+
+        // 1. جلب الـ manifest الجديد
+        const newManifest = await fetchRemoteManifest(transportUrl);
+        if (!newManifest?.id) throw new Error('invalid_manifest');
+
+        // 2. جلب قائمة الإضافات الحالية
+        const listRes = await fetch('https://api.strem.io/api/addonCollectionGet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify({ authKey: stremio_auth.authKey, update: true })
+        });
+        const listData = await listRes.json();
+        const addons = listData?.result?.addons || [];
+
+        // 3. استبدال الإضافة القديمة بالجديدة (نفس transportUrl)
+        const updatedAddons = addons.map(addon => {
+          if (addon.transportUrl === transportUrl) {
+            return { ...addon, manifest: newManifest };
+          }
+          return addon;
+        });
+
+        // 4. رفع التحديث لـ Stremio API
+        const saveRes = await fetch('https://api.strem.io/api/addonCollectionSet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify({ authKey: stremio_auth.authKey, addons: updatedAddons })
+        });
+        const saveData = await saveRes.json();
+        if (saveData.error) throw new Error(typeof saveData.error === 'string' ? saveData.error : 'save_failed');
+
+        // 5. إزالة الإضافة من قائمة التحديثات المحفوظة
+        const { addonUpdates = [] } = await chrome.storage.local.get(['addonUpdates']);
+        const remaining = addonUpdates.filter(u => u.transportUrl !== transportUrl);
+        await chrome.storage.local.set({ addonUpdates: remaining });
+
+        // 6. تحديث Badge
+        const count = remaining.length;
+        await chrome.action.setBadgeText({ text: count > 0 ? String(count) : '' });
+
+        sendResponse({ success: true, newVersion: newManifest.version });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+    return true;
+  }
+
+  if (message.type === 'UPDATE_COMPLEX_ADDON') {
+    (async () => {
+      try {
+        const { oldTransportUrl, newTransportUrl } = message;
+        if (!oldTransportUrl || !newTransportUrl) throw new Error('missing_urls');
+
+        // 1. جلب التوثيق
+        const { stremio_auth } = await chrome.storage.local.get(['stremio_auth']);
+        if (!stremio_auth?.authKey) throw new Error('not_logged_in');
+
+        // 2. جلب المانيفست الجديد
+        const newManifest = await fetchRemoteManifest(newTransportUrl);
+        if (!newManifest?.id) throw new Error('invalid_manifest');
+
+        // 3. جلب قائمة الإضافات الحالية
+        const listRes = await fetch('https://api.strem.io/api/addonCollectionGet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify({ authKey: stremio_auth.authKey, update: true })
+        });
+        const listData = await listRes.json();
+        const addons = listData?.result?.addons || [];
+
+        // 4. البحث عن الإضافة القديمة
+        const oldAddonIndex = addons.findIndex(a => a.transportUrl === oldTransportUrl);
+        if (oldAddonIndex === -1) throw new Error('old_addon_not_found');
+
+        // حماية: التأكد أن المعرف هو نفسه لكي لا يتم استبدال إضافة بأخرى مختلفة كلياً
+        if (newManifest.id !== addons[oldAddonIndex].manifest.id) {
+          throw new Error('manifest_id_mismatch');
+        }
+
+        // 5. استبدال الرابط والبيانات في نفس المكان
+        addons[oldAddonIndex] = {
+          ...addons[oldAddonIndex],
+          transportUrl: newTransportUrl,
+          manifest: newManifest
+        };
+
+        // 6. الحفظ
+        const saveRes = await fetch('https://api.strem.io/api/addonCollectionSet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify({ authKey: stremio_auth.authKey, addons })
+        });
+        const saveData = await saveRes.json();
+        if (saveData.error) throw new Error(typeof saveData.error === 'string' ? saveData.error : 'save_failed');
+
+        // 7. إزالة من قائمة التحديثات وتحديث الـ Badge
+        const { addonUpdates = [] } = await chrome.storage.local.get(['addonUpdates']);
+        const remaining = addonUpdates.filter(u => u.transportUrl !== oldTransportUrl);
+        await chrome.storage.local.set({ addonUpdates: remaining });
+        const count = remaining.length;
+        await chrome.action.setBadgeText({ text: count > 0 ? String(count) : '' });
+
+        sendResponse({ success: true, newVersion: newManifest.version });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+    return true;
+  }
+
   if (message.type === 'GET_AUTH') {
     (async () => {
       const result = await chrome.storage.local.get(['stremio_auth']);

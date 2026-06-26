@@ -396,6 +396,42 @@
             <span data-i18n="addon_warning">هذا القسم يُعدّل إعدادات Stremio مباشرةً. يُنصح بعمل نسخة احتياطية قبل أي تعديل.</span>
           </div>
 
+          <!-- ==================== Addon Update Checker ==================== -->
+          <div class="setting-card" id="addon-updates-card">
+            <div class="setting-info" style="width:100%; margin-bottom: 12px; flex-direction: row; justify-content: space-between; align-items: center;">
+              <div>
+                <h4 data-i18n="addon_updates_title">فحص التحديثات</h4>
+                <p data-i18n="addon_updates_desc">تحقق من وجود إصدارات جديدة لإضافاتك المثبتة.</p>
+              </div>
+              <button id="addon-check-updates-btn" class="addon-sync-btn" style="flex-shrink:0;">
+                <svg id="addon-check-updates-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                <span data-i18n="addon_updates_check_btn">فحص الآن</span>
+              </button>
+            </div>
+
+            <!-- حالة آخر فحص -->
+            <p id="addon-updates-last-check" style="font-size:11px; color:var(--text-muted); margin:0 0 10px 0; display:none;"></p>
+
+            <!-- مؤشر التحميل -->
+            <div id="addon-updates-spinner" class="addon-loading hidden">
+              <span class="dot-loader"></span>
+            </div>
+
+            <!-- قائمة التحديثات -->
+            <div id="addon-updates-list"></div>
+
+            <!-- حالة: لا توجد تحديثات -->
+            <div id="addon-updates-none" class="hidden" style="display:none; align-items:center; gap:8px; padding:10px 0; color:var(--text-muted); font-size:13px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span data-i18n="addon_updates_none">جميع الإضافات محدّثة ✓</span>
+            </div>
+          </div>
+
           <!-- Addon Options -->
           <div class="setting-card">
             <div class="setting-info">
