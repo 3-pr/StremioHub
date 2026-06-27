@@ -4560,11 +4560,24 @@ function setupAddonManagerListeners() {
   const customFontText = $('custom-font-name-text');
   const customFontChangeBtn = $('custom-font-change-btn');
 
+  function handleCustomFontUpload() {
+    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+    const isFullTab = window.location.search.includes('settingsTab=');
+    if (isFirefox && !isFullTab) {
+      const t = I18N[state.language || 'ar'];
+      alert(t.firefox_popup_warning || 'في متصفح فايرفوكس، سيتم فتح الإعدادات في علامة تبويب جديدة لاختيار الملف لكي لا تُغلق النافذة.');
+      chrome.tabs.create({ url: chrome.runtime.getURL('popup/popup.html?settingsTab=webenhancer') });
+      if (webFontEl) webFontEl.value = '';
+      return;
+    }
+    if (customFontInput) customFontInput.click();
+  }
+
   if (webFontEl) {
     webFontEl.addEventListener('change', (e) => {
       const font = e.target.value;
       if (font === 'custom') {
-        if (customFontInput) customFontInput.click();
+        handleCustomFontUpload();
       } else {
         if (customFontDisplay) customFontDisplay.style.display = 'none';
         chrome.storage.local.set({ webCustomFont: font });
@@ -4574,9 +4587,7 @@ function setupAddonManagerListeners() {
   }
 
   if (customFontChangeBtn) {
-    customFontChangeBtn.addEventListener('click', () => {
-      if (customFontInput) customFontInput.click();
-    });
+    customFontChangeBtn.addEventListener('click', handleCustomFontUpload);
   }
 
   if (customFontInput) {
@@ -4840,3 +4851,21 @@ function fetchAndRenderPopupRatings(item) {
   });
 }
 
+
+// ==================== Firefox Popup Workaround ====================
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const openSettingsTab = urlParams.get('settingsTab');
+  if (openSettingsTab) {
+    setTimeout(() => {
+      const tabBtn = document.querySelector(`.settings-tab-btn[data-settings-tab="${openSettingsTab}"]`);
+      if (tabBtn) tabBtn.click();
+      
+      const settingsOverlay = document.getElementById('settings-overlay');
+      if (settingsOverlay) {
+        settingsOverlay.classList.remove('hidden');
+        settingsOverlay.classList.add('visible');
+      }
+    }, 150);
+  }
+});
