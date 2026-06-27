@@ -332,16 +332,17 @@
   applyWebStyles();
 
   // استقبال تحديثات فورية من الـ popup
-  chrome.runtime.onMessage.addListener((msg) => {
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.type === 'UPDATE_WEB_STYLE') {
       applyWebStyles(msg);
+      sendResponse({ success: true });
     }
   });
 
   async function applyWebStyles(overrides = {}) {
     let settings = {};
     try {
-      settings = await chrome.storage.local.get(['webCustomFont', 'webAccentColor', 'webOledEnabled']);
+      settings = await chrome.storage.local.get(['webCustomFont', 'webCustomFontFile', 'webAccentColor', 'webOledEnabled']);
     } catch (err) {
       if (err.message && err.message.includes('Extension context invalidated')) return;
     }
@@ -385,7 +386,16 @@
             }
           `;
         } catch (e) {}
-      } else {
+        css += `html, body, #app, * { font-family: '${font}', sans-serif !important; }\n`;
+      } else if (font === 'custom' && settings.webCustomFontFile) {
+        css += `
+          @font-face {
+            font-family: 'StremioHubCustomFont';
+            src: url('${settings.webCustomFontFile}');
+          }
+        `;
+        css += `html, body, #app, * { font-family: 'StremioHubCustomFont', sans-serif !important; }\n`;
+      } else if (font !== 'custom') {
         const linkId = `sh-font-${font.replace(/\s/g, '-')}`;
         if (!document.getElementById(linkId)) {
           const link  = document.createElement('link');
@@ -394,8 +404,8 @@
           link.href   = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font)}&display=swap`;
           document.head.appendChild(link);
         }
+        css += `html, body, #app, * { font-family: '${font}', sans-serif !important; }\n`;
       }
-      css += `html, body, #app, * { font-family: '${font}', sans-serif !important; }\n`;
     }
 
     if (accent) {

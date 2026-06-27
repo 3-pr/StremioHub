@@ -670,6 +670,7 @@
             </div>
             <select id="setting-web-font" class="size-select-modern">
               <option value="" data-i18n="font_default">افتراضي (بدون تغيير)</option>
+              <option value="custom" data-i18n="font_custom">تحميل خط من الجهاز...</option>
               <optgroup label="Arabic Fonts (عربي)">
                 <option value="Thmanyah">ثمانية</option>
                 <option value="Cairo">Cairo</option>
@@ -685,6 +686,11 @@
                 <option value="Roboto">Roboto</option>
               </optgroup>
             </select>
+            <input type="file" id="custom-font-input" accept=".woff,.woff2,.ttf,.otf" style="display:none;">
+            <div id="custom-font-name-display" style="font-size: 11px; color: #a78bfa; margin-top: 8px; display: none; word-break: break-all;">
+              <span id="custom-font-name-text"></span>
+              <span id="custom-font-change-btn" style="cursor: pointer; text-decoration: underline; margin-inline-start: 8px; font-weight: bold;">(تغيير)</span>
+            </div>
           </div>
 
           <div class="setting-card">

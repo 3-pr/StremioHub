@@ -4411,7 +4411,7 @@ function setupAddonManagerListeners() {
   chrome.storage.local.get([
     'ratingsEnabled', 'popupRatingsEnabled', 'ratingsSource',
     'mdblistApiKey', 'publicmetadbApiKey',
-    'webCustomFont', 'webAccentColor',
+    'webCustomFont', 'webCustomFontFile', 'webCustomFontName', 'webAccentColor',
     'webOledEnabled',
     'ratingPreferences'
   ], (saved) => {
@@ -4434,8 +4434,20 @@ function setupAddonManagerListeners() {
     if (el('setting-publicmetadb-key') && saved.publicmetadbApiKey)
       el('setting-publicmetadb-key').value = saved.publicmetadbApiKey;
 
-    if (el('setting-web-font') && saved.webCustomFont)
+    if (el('setting-web-font') && saved.webCustomFont) {
       el('setting-web-font').value = saved.webCustomFont;
+      if (saved.webCustomFont === 'custom' && saved.webCustomFontName) {
+        const displayEl = el('custom-font-name-display');
+        const textEl = el('custom-font-name-text');
+        const changeBtnEl = el('custom-font-change-btn');
+        if (displayEl && textEl && changeBtnEl) {
+          const t = I18N[state.language || 'ar'];
+          textEl.textContent = (t.font_current || "الخط الحالي: ") + saved.webCustomFontName;
+          changeBtnEl.textContent = t.font_change || "(تغيير)";
+          displayEl.style.display = 'block';
+        }
+      }
+    }
 
     if (el('setting-web-accent') && saved.webAccentColor) {
       el('setting-web-accent').value = saved.webAccentColor;
@@ -4543,11 +4555,77 @@ function setupAddonManagerListeners() {
 
   // اختيار الخط
   const webFontEl = $('setting-web-font');
+  const customFontInput = $('custom-font-input');
+  const customFontDisplay = $('custom-font-name-display');
+  const customFontText = $('custom-font-name-text');
+  const customFontChangeBtn = $('custom-font-change-btn');
+
   if (webFontEl) {
     webFontEl.addEventListener('change', (e) => {
       const font = e.target.value;
-      chrome.storage.local.set({ webCustomFont: font });
-      broadcastStyleUpdate({ font });
+      if (font === 'custom') {
+        if (customFontInput) customFontInput.click();
+      } else {
+        if (customFontDisplay) customFontDisplay.style.display = 'none';
+        chrome.storage.local.set({ webCustomFont: font });
+        broadcastStyleUpdate({ font });
+      }
+    });
+  }
+
+  if (customFontChangeBtn) {
+    customFontChangeBtn.addEventListener('click', () => {
+      if (customFontInput) customFontInput.click();
+    });
+  }
+
+  if (customFontInput) {
+    customFontInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      const t = I18N[state.language || 'ar'];
+
+      if (!file) {
+        // إذا ألغى المستخدم اختيار الملف، نعود للخط الافتراضي
+        webFontEl.value = '';
+        chrome.storage.local.set({ webCustomFont: '' });
+        broadcastStyleUpdate({ font: '' });
+        return;
+      }
+
+      // التحقق من الحجم (الحد الأقصى 5 ميجابايت)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(t.font_size_error || 'حجم الخط كبير جداً! الحد الأقصى المسموح به هو 5 ميجابايت.');
+        webFontEl.value = '';
+        e.target.value = ''; // Reset input
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Font = event.target.result;
+        chrome.storage.local.set({ 
+          webCustomFont: 'custom',
+          webCustomFontFile: base64Font,
+          webCustomFontName: file.name
+        }, () => {
+          if (chrome.runtime.lastError) {
+            alert(t.font_size_error || 'فشل في حفظ الخط! يبدو أن حجم الخط كبير جداً ويتجاوز سعة التخزين المسموحة في المتصفح. يرجى اختيار خط بحجم أصغر.');
+            webFontEl.value = '';
+            return;
+          }
+          if (customFontDisplay && customFontText && customFontChangeBtn) {
+            customFontText.textContent = (t.font_current || "الخط الحالي: ") + file.name;
+            customFontChangeBtn.textContent = t.font_change || "(تغيير)";
+            customFontDisplay.style.display = 'block';
+          }
+          broadcastStyleUpdate({ font: 'custom' });
+        });
+      };
+      reader.onerror = () => {
+        alert('فشل في قراءة ملف الخط!');
+        webFontEl.value = '';
+      };
+      reader.readAsDataURL(file);
     });
   }
 
