@@ -10,7 +10,7 @@
   <p>
     <a href="README.md">🇬🇧 Read in English</a>
   </p>
-  <img src="https://img.shields.io/badge/version-1.3.0-8b5cf6?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.5.0-8b5cf6?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/chrome-MV3-4285F4?style=flat-square&logo=googlechrome" alt="Chrome MV3">
   <img src="https://img.shields.io/badge/firefox-MV3-FF7139?style=flat-square&logo=firefox" alt="Firefox MV3">
 </div>
@@ -87,20 +87,25 @@
 
 </details>
 
-## 🏪 متجر كروم الإلكتروني
+## 🏪 المتاجر الرسمية
 
 <div align="center">
   <a href="https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg" target="_blank">
     <img src="assets/chrome-store-badge.svg" alt="متاح في متجر Chrome الإلكتروني" height="58">
   </a>
+  &nbsp;&nbsp;
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/stremiohub/" target="_blank">
+    <img src="https://img.shields.io/badge/Get_it_on-Firefox_Add--ons-FF7139?style=for-the-badge&logo=firefox&logoColor=white" alt="متاح في متجر Firefox Add-ons" height="58">
+  </a>
 </div>
 
 <div dir="rtl">
 
-**StremioHub متاحة الآن رسمياً في متجر Chrome الإلكتروني!**
+**StremioHub متاحة الآن رسمياً في متاجر Chrome و Firefox!**
 ثبّتها بضغطة زر واحدة — بدون وضع المطور — مع تحديثات تلقائية.
 
-👉 [ثبّت StremioHub من متجر Chrome](https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg)
+👉 [ثبّت StremioHub لمتصفح كروم](https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg)  
+👉 [ثبّت StremioHub لمتصفح فايرفوكس](https://addons.mozilla.org/en-US/firefox/addon/stremiohub/)
 
 </div>
 
@@ -138,6 +143,13 @@
 ## 📋 سجل التغييرات
 
 <div dir="rtl">
+
+### v1.5.0 — الخطوط المخصصة والتحديث التلقائي
+- ✅ **رفع خط مخصص**: إمكانية رفع وتطبيق خطك الخاص (ttf, woff, woff2) مباشرة على واجهة Stremio Web.
+- ✅ **فحص التحديثات**: إضافة نظام يفحص تلقائياً وجود تحديثات لإضافاتك المُثبتة كل 24 ساعة.
+- ✅ **التحديث اليدوي**: دعم تحديث الإضافات المعقدة مع الحفاظ على إعداداتك بضغطة زر.
+- ✅ **استقرار Firefox**: إصلاح مشاكل إغلاق نافذة الإضافة عند محاولة رفع ملف خط في متصفح فايرفوكس.
+- ✅ **الترجمة**: دعم كامل للغتين العربية والإنجليزية للميزات الجديدة.
 
 ### v1.4.2
 - إصلاح تداخل الخلفية السوداء لوضع OLED مع شريط تحكم المشغل في Stremio Web

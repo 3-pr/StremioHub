@@ -10,7 +10,7 @@
   <p>
     <a href="README_AR.md">🇸🇦 Read in Arabic (اقرأ بالعربية)</a>
   </p>
-  <img src="https://img.shields.io/badge/version-1.3.0-8b5cf6?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.5.0-8b5cf6?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/chrome-MV3-4285F4?style=flat-square&logo=googlechrome" alt="Chrome MV3">
   <img src="https://img.shields.io/badge/firefox-MV3-FF7139?style=flat-square&logo=firefox" alt="Firefox MV3">
 </div>
@@ -128,6 +128,13 @@ Load the `extension-firefox` folder at `about:debugging#/runtime/this-firefox`.
 **StremioHub is an unofficial, community-built extension.** It is not affiliated with, endorsed by, or officially connected to the Stremio team.
 
 ## 📋 Changelog
+
+### v1.5.0 — Custom Fonts & Auto Updates
+- ✅ **Custom Font Upload**: Upload and apply your own fonts (.ttf, .woff, .woff2) directly to Stremio Web UI.
+- ✅ **Addon Update Checker**: Automatically check for newer versions of installed Stremio addons every 24 hours.
+- ✅ **Manual Updates Support**: Update complex addons securely while preserving configurations.
+- ✅ **Firefox Stability**: Fixed bugs where the file picker closed the extension popup in Firefox.
+- ✅ **Translation**: Full English & Arabic localization for the new features.
 
 ### v1.4.2
 - Fix OLED theme black background issue on video player control bar in Stremio Web
