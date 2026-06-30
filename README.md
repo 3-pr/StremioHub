@@ -22,6 +22,10 @@
   <a href='https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg' target='_blank'>
     <img height='36' src='assets/chrome-store-badge.svg' alt='Available in the Chrome Web Store' />
   </a>
+  &nbsp;
+  <a href='https://addons.mozilla.org/en-US/firefox/addon/stremiohub/' target='_blank'>
+    <img height='36' src='https://img.shields.io/badge/Get_it_on-Firefox_Add--ons-FF7139?style=for-the-badge&logo=firefox&logoColor=white' alt='Available on Firefox Add-ons' />
+  </a>
 </div>
 
 ---
@@ -78,18 +82,23 @@ Easily mark episodes or movies as watched directly from the popup.
 
 </details>
 
-## 🏪 Chrome Web Store
+## 🏪 Official Stores
 
 <div align="center">
   <a href="https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg" target="_blank">
     <img src="assets/chrome-store-badge.svg" alt="Available in the Chrome Web Store" height="58">
   </a>
+  &nbsp;&nbsp;
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/stremiohub/" target="_blank">
+    <img src="https://img.shields.io/badge/Get_it_on-Firefox_Add--ons-FF7139?style=for-the-badge&logo=firefox&logoColor=white" alt="Available on Firefox Add-ons" height="58">
+  </a>
 </div>
 
-**StremioHub is now officially available on the Chrome Web Store!**  
+**StremioHub is officially available on Chrome Web Store and Firefox Add-ons!**  
 Install it with one click — no developer mode required. Automatic updates included.
 
-👉 [Install StremioHub from the Chrome Web Store](https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg)
+👉 [Install for Chrome](https://chromewebstore.google.com/detail/stremiohub/kkmkapcckkkgblkcgmngehcejpbpddeg)  
+👉 [Install for Firefox](https://addons.mozilla.org/en-US/firefox/addon/stremiohub/)
 
 ## 🛠 Manual Installation (Developer Mode)
 
